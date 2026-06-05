@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>TSP · Diseño de Modas · Demo IA</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --rosa:#e14a94;--rosa-dark:#b5307a;--rosa-light:#f9d4e9;
+  --azul:#0072b9;--azul-dark:#004f80;--azul-light:#cfe6f5;
+  --dorado:#f3a100;--dorado-dark:#c47d00;
+  --verde:#10b981;--verde-dark:#065f46;--verde-light:#d1fae5;
+  --purpura:#7c3aed;--purpura-light:#ede9fe;
+  --gris:#555553;--gris-claro:#f4f4f2;--gris-medio:#d8d8d4;
+  --crema:#fbfaf6;
+  --font-d:'Bricolage Grotesque',system-ui,sans-serif;
+  --font-b:'Manrope',system-ui,sans-serif;
+  --font-m:'JetBrains Mono',monospace;
+  --r-sm:8px;--r-md:16px;--r-lg:24px;--r-xl:32px;
+  --sh-sm:0 2px 8px rgba(0,0,0,.06);
+  --sh-md:0 8px 24px rgba(0,0,0,.10);
+  --sh-lg:0 24px 60px rgba(0,0,0,.18);
+  --tr:cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:var(--font-b);color:var(--gris);background:var(--crema);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,h4,h5,h6{font-family:var(--font-d);font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--azul-dark)}
+
+/* SCROLL */
+.scroll-bar{position:fixed;top:0;left:0;width:0%;height:3px;background:linear-gradient(90deg,var(--rosa),var(--azul),var(--dorado));z-index:3000;transition:width .1s linear}
+
+/* HEADER */
+.hdr{background:rgba(255,255,255,.95);border-bottom:1px solid var(--gris-medio);position:sticky;top:0;z-index:1000;backdrop-filter:blur(20px)}
+.hdr-badge{font-family:var(--font-m);font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;background:var(--rosa);color:#fff;padding:.3rem .8rem;border-radius:999px}
+.np{font-size:.76rem;font-weight:600;padding:.38rem .85rem;border-radius:999px;color:var(--gris);text-decoration:none;border:1.5px solid transparent;transition:all .22s var(--tr);white-space:nowrap}
+.np:hover{background:var(--rosa);color:#fff;border-color:var(--rosa)}
+.np.cta{background:var(--dorado);color:#fff;border-color:var(--dorado)}
+
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--rosa) 0%,var(--rosa-dark) 50%,var(--azul-dark) 100%);color:#fff;position:relative;overflow:hidden;padding:4.5rem 0 5.5rem}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(243,161,0,.18) 0%,transparent 40%),radial-gradient(circle at 80% 70%,rgba(0,114,185,.3) 0%,transparent 50%);pointer-events:none}
+.hero::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.hero-c{position:relative;z-index:2}
+.eyebrow{display:inline-block;font-family:var(--font-m);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;padding:.45rem .95rem;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:rgba(255,255,255,.08)}
+.hero-t{color:#fff;font-size:clamp(2rem,5.5vw,4rem);font-weight:800;letter-spacing:-.04em;margin:1.1rem 0 .9rem;line-height:.95}
+.hero-t .ac{color:var(--dorado);font-style:italic}
+.hero-lead{font-size:clamp(.95rem,1.4vw,1.15rem);max-width:700px;color:rgba(255,255,255,.85);line-height:1.55}
+.hstats{display:flex;flex-wrap:wrap;gap:1.8rem;margin-top:2.2rem}
+.hstat-n{font-family:var(--font-d);font-weight:800;font-size:2.2rem;color:var(--dorado);line-height:1}
+.hstat-l{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.68);margin-top:.25rem}
+
+/* AI BADGE en hero */
+.ai-hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(124,58,237,.25);border:1px solid rgba(124,58,237,.5);border-radius:999px;padding:.4rem 1rem;font-size:.78rem;font-weight:700;color:#fff;margin-top:1.2rem}
+.ai-pulse{width:8px;height:8px;background:var(--purpura);border-radius:50%;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}}
+
+/* SECTION */
+.sec{padding:4.5rem 0}
+.sec-ey{font-family:var(--font-m);font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:var(--rosa);font-weight:600;margin-bottom:.7rem;display:flex;align-items:center;gap:.7rem}
+.sec-ey::before{content:"";display:inline-block;width:28px;height:2px;background:var(--rosa)}
+.sec-t{font-size:clamp(1.7rem,3.5vw,2.8rem);font-weight:800;letter-spacing:-.035em;margin-bottom:.9rem}
+.sec-t .ac{color:var(--dorado)}
+.sec-lead{font-size:1rem;max-width:740px;color:var(--gris);margin-bottom:2.2rem}
+
+/* FORM CARD */
+.fc{background:#fff;border-radius:var(--r-xl);padding:2.2rem;box-shadow:var(--sh-lg);position:relative;z-index:2}
+.step-lbl{font-family:var(--font-m);font-size:.66rem;letter-spacing:.25em;text-transform:uppercase;color:var(--rosa);font-weight:700;margin-bottom:.9rem;padding-bottom:.5rem;border-bottom:2px dashed var(--gris-medio);display:flex;align-items:center;gap:.7rem}
+.sn{width:24px;height:24px;background:var(--rosa);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.74rem;letter-spacing:0;flex-shrink:0}
+.lbl{font-weight:600;font-size:.86rem;color:var(--azul-dark);margin-bottom:.3rem;display:block}
+.lbl .req{color:var(--dorado);margin-left:2px}
+
+/* INPUT WRAPPER con botón IA */
+.input-ai-wrap{position:relative}
+.ctrl{width:100%;padding:.68rem .9rem;font-family:var(--font-b);font-size:.93rem;background:var(--gris-claro);border:1.5px solid transparent;border-radius:var(--r-sm);color:var(--azul-dark);transition:all .22s var(--tr);resize:vertical}
+.ctrl:focus{outline:none;background:#fff;border-color:var(--rosa);box-shadow:0 0 0 4px rgba(225,74,148,.12)}
+.ctrl.ai-filled{border-color:var(--verde);background:#fff;animation:fillFlash .5s var(--tr)}
+@keyframes fillFlash{0%{background:var(--verde-light)}100%{background:#fff}}
+.ctrl-hint{font-size:.73rem;color:var(--gris);margin-top:.28rem}
+
+/* BTN IA inline */
+.btn-ai{position:absolute;right:.5rem;top:.5rem;background:linear-gradient(135deg,var(--purpura),var(--rosa));color:#fff;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.68rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem;transition:all .2s var(--tr);z-index:2;white-space:nowrap}
+.btn-ai:hover{transform:scale(1.07);box-shadow:0 4px 12px rgba(124,58,237,.35)}
+.btn-ai svg{width:11px;height:11px;flex-shrink:0}
+.ctrl.has-ai-btn{padding-right:5.5rem}
+textarea.has-ai-btn{padding-right:.9rem;padding-bottom:2.8rem}
+.btn-ai.textarea-pos{position:absolute;right:.5rem;bottom:.5rem;top:auto}
+
+/* BTN IMAGEN */
+.btn-img-prompt{display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,var(--dorado-dark),var(--dorado));color:#fff;border:none;border-radius:6px;padding:.28rem .65rem;font-size:.66rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:.3rem}
+.btn-img-prompt:hover{transform:scale(1.05)}
+
+/* MODAL IA */
+.ai-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);padding:1rem}
+.ai-modal-overlay.show{display:flex;animation:fadeIn .2s var(--tr)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.ai-modal{background:#fff;border-radius:var(--r-xl) var(--r-xl) var(--r-lg) var(--r-lg);width:100%;max-width:700px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--sh-lg);animation:slideUp .3s var(--tr)}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ai-modal-head{padding:1.4rem 1.6rem 1rem;border-bottom:1px solid var(--gris-medio);flex-shrink:0;display:flex;align-items:center;gap:.8rem}
+.ai-modal-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--purpura),var(--rosa));display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-modal-title{font-family:var(--font-d);font-weight:700;font-size:1.1rem;color:var(--azul-dark);margin:0}
+.ai-modal-sub{font-size:.8rem;color:var(--gris);margin:0}
+.btn-close-modal{margin-left:auto;background:var(--gris-claro);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.btn-close-modal:hover{background:var(--rosa);color:#fff}
+.ai-modal-body{padding:1.4rem 1.6rem;overflow-y:auto;flex:1}
+.ai-tab-bar{display:flex;gap:.4rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.ai-tab{font-size:.76rem;font-weight:600;padding:.35rem .85rem;border-radius:999px;border:1.5px solid var(--gris-medio);background:#fff;color:var(--gris);cursor:pointer;transition:all .2s}
+.ai-tab.active{background:var(--purpura);border-color:var(--purpura);color:#fff}
+.ai-tab-panel{display:none}
+.ai-tab-panel.active{display:block}
+
+/* SUGERENCIAS IA */
+.ai-sugg-list{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem}
+.ai-sugg{background:var(--gris-claro);border-radius:var(--r-sm);padding:.9rem 1rem;font-size:.88rem;color:var(--azul-dark);border:1.5px solid transparent;cursor:pointer;transition:all .2s;line-height:1.5;position:relative}
+.ai-sugg:hover{border-color:var(--purpura);background:var(--purpura-light)}
+.ai-sugg::after{content:"↑ Usar";position:absolute;right:.8rem;top:50%;transform:translateY(-50%);font-size:.7rem;font-weight:700;color:var(--purpura);opacity:0;transition:opacity .2s}
+.ai-sugg:hover::after{opacity:1}
+.ai-sugg-label{font-family:var(--font-m);font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--purpura);font-weight:700;margin-bottom:.4rem}
+
+/* PROMPT IMÁGENES */
+.img-prompt-card{background:linear-gradient(135deg,#1a0533 0%,#0a1929 100%);border-radius:var(--r-md);padding:1.2rem;margin-bottom:.8rem;border:1px solid rgba(124,58,237,.3);position:relative;overflow:hidden}
+.img-prompt-card::before{content:"";position:absolute;top:-30%;right:-10%;width:200px;height:200px;background:radial-gradient(circle,rgba(124,58,237,.2) 0%,transparent 70%);pointer-events:none}
+.img-prompt-label{font-family:var(--font-m);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--purpura);font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+.img-prompt-text{font-family:var(--font-m);font-size:.78rem;color:rgba(255,255,255,.85);line-height:1.7;margin-bottom:.8rem;white-space:pre-wrap}
+.img-prompt-tools{display:flex;gap:.4rem;flex-wrap:wrap}
+.tool-badge{font-size:.68rem;font-weight:600;padding:.2rem .6rem;border-radius:4px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7)}
+.btn-copy-prompt{background:var(--purpura);color:#fff;border:none;border-radius:6px;padding:.3rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.3rem;margin-top:.6rem}
+.btn-copy-prompt:hover{background:var(--rosa)}
+.btn-copy-prompt.copied{background:var(--verde)}
+
+/* LOADING DOTS */
+.ai-loading{display:none;align-items:center;gap:.4rem;padding:.8rem;color:var(--purpura);font-size:.85rem;font-weight:600}
+.ai-loading.show{display:flex}
+.dot{width:6px;height:6px;background:var(--purpura);border-radius:50%;animation:bounce .8s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.15s}
+.dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
+
+/* DEMO OVERLAY */
+.demo-typing{pointer-events:none;opacity:.6;animation:typing 2s linear}
+@keyframes typing{from{opacity:.3}to{opacity:.6}}
+
+/* GENERADOR WRAPPER */
+.gen-wrap{background:linear-gradient(160deg,var(--azul-dark) 0%,var(--rosa-dark) 100%);color:#fff;position:relative;overflow:hidden}
+.gen-wrap::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 10% 20%,rgba(243,161,0,.12) 0%,transparent 35%),radial-gradient(circle at 90% 80%,rgba(225,74,148,.2) 0%,transparent 45%);pointer-events:none}
+.gen-wrap .sec-ey{color:var(--dorado)}
+.gen-wrap .sec-ey::before{background:var(--dorado)}
+.gen-wrap .sec-t,.gen-wrap .sec-lead{color:#fff}
+
+/* SLIDE CANVAS */
+.slides-preview{margin-top:1.8rem}
+.slides-nav{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.snav-btn{font-size:.72rem;font-weight:600;padding:.35rem .8rem;border-radius:999px;border:1.5px solid var(--gris-medio);background:#fff;color:var(--gris);cursor:pointer;transition:all .22s var(--tr)}
+.snav-btn:hover,.snav-btn.active{background:var(--rosa);border-color:var(--rosa);color:#fff}
+.slide-canvas{background:#fff;border-radius:var(--r-lg);box-shadow:var(--sh-lg);overflow:hidden;aspect-ratio:16/9;width:100%;position:relative}
+.slide-display{display:none;width:100%;height:100%}
+.slide-display.active{display:flex;flex-direction:column;width:100%;height:100%}
+
+/* SLIDE TIPOS */
+.s-portada{background:linear-gradient(135deg,var(--rosa) 0%,var(--rosa-dark) 50%,var(--azul-dark) 100%);color:#fff;padding:5% 8%;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;height:100%}
+.s-portada::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(243,161,0,.2) 0%,transparent 40%);pointer-events:none}
+.s-hdr{background:linear-gradient(135deg,var(--rosa) 0%,var(--rosa-dark) 100%);color:#fff;padding:2.5% 8%;display:flex;align-items:center;gap:1.5%;flex-shrink:0}
+.s-hdr-n{font-family:var(--font-d);font-weight:800;font-size:clamp(1rem,2vw,1.8rem);opacity:.4}
+.s-hdr-t{font-family:var(--font-d);font-weight:700;font-size:clamp(.7rem,1.3vw,1.1rem);color:#fff;margin:0}
+.s-body{padding:2.5% 8%;flex:1;display:flex;flex-direction:column;justify-content:center}
+.s-foot{background:var(--gris-claro);padding:1.2% 8%;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;border-top:2px solid var(--rosa-light)}
+.s-foot-t{font-family:var(--font-m);font-size:clamp(.32rem,.5vw,.46rem);color:var(--gris);opacity:.7}
+.s-foot-n{font-family:var(--font-d);font-weight:800;font-size:clamp(.5rem,.85vw,.75rem);color:var(--rosa)}
+.s-tag{display:inline-block;font-family:var(--font-m);font-size:clamp(.38rem,.58vw,.55rem);letter-spacing:.12em;background:var(--rosa-light);color:var(--rosa-dark);padding:.18em .55em;border-radius:4px;margin-bottom:.4em}
+.s-col-t{font-family:var(--font-m);font-size:clamp(.42rem,.6vw,.57rem);letter-spacing:.18em;text-transform:uppercase;color:var(--rosa);font-weight:700;margin-bottom:.45em;padding-bottom:.25em;border-bottom:2px solid var(--rosa-light)}
+.s-txt{font-size:clamp(.5rem,.82vw,.75rem);color:var(--gris);line-height:1.6;margin-bottom:.6em}
+.s-title{font-family:var(--font-d);font-weight:700;font-size:clamp(.65rem,1.1vw,.95rem);color:var(--azul-dark);margin-bottom:.35em}
+.s-2col{display:grid;grid-template-columns:1fr 1fr;gap:4%}
+.s-list{list-style:none;padding:0;margin:0}
+.s-list li{font-size:clamp(.46rem,.78vw,.72rem);color:var(--gris);padding:.25em 0;padding-left:1.1em;position:relative;line-height:1.5}
+.s-list li::before{content:"◆";position:absolute;left:0;color:var(--rosa);font-size:.45em;top:.55em}
+.s-eyebrow{font-family:var(--font-m);font-size:clamp(.38rem,.55vw,.52rem);letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:.7;margin-bottom:.3em}
+.s-big-t{font-family:var(--font-d);font-weight:800;font-size:clamp(.9rem,1.9vw,1.7rem);color:#fff;margin:.4em 0 .6em;line-height:1.05}
+.s-sub{font-size:clamp(.5rem,.8vw,.73rem);opacity:.85;margin-bottom:.3em}
+.s-autor{font-size:clamp(.46rem,.72vw,.65rem);opacity:.75}
+.s-badge-pill{display:inline-block;font-family:var(--font-m);font-size:clamp(.38rem,.56vw,.52rem);letter-spacing:.14em;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);padding:.25em .7em;border-radius:999px;margin-bottom:.6em}
+
+/* SLIDE AI WATERMARK */
+.slide-ai-mark{position:absolute;bottom:4%;right:2%;font-family:var(--font-m);font-size:clamp(.28rem,.42vw,.38rem);color:var(--purpura);opacity:.5;letter-spacing:.1em}
+
+/* SLIDE NAV CTRL */
+.slide-ctrl{display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;padding:.8rem 1rem;background:#fff;border-radius:var(--r-md);border:1px solid var(--gris-medio)}
+.btn-nav-s{background:var(--gris-claro);border:none;border-radius:var(--r-sm);padding:.5rem 1rem;font-weight:600;font-size:.84rem;cursor:pointer;color:var(--azul-dark);transition:all .22s var(--tr);display:flex;align-items:center;gap:.35rem}
+.btn-nav-s:hover{background:var(--rosa);color:#fff}
+.btn-nav-s:disabled{opacity:.3;cursor:not-allowed}
+.slide-ctr{font-family:var(--font-m);font-size:.82rem;color:var(--gris);font-weight:600}
+
+/* EXPORT */
+.exp-panel{background:var(--gris-claro);border-radius:var(--r-lg);padding:1.8rem;margin-top:1.2rem;border:1px solid var(--gris-medio)}
+.exp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem}
+.exp-card{background:#fff;border-radius:var(--r-md);padding:1.1rem;border:1px solid var(--gris-medio);cursor:pointer;transition:all .22s var(--tr);text-align:center}
+.exp-card:hover{border-color:var(--rosa);transform:translateY(-2px);box-shadow:var(--sh-sm)}
+.exp-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto .65rem;font-size:1.3rem}
+
+/* BTNS */
+.btn-gen{position:relative;display:inline-flex;align-items:center;gap:.6rem;padding:1rem 2.2rem;background:var(--rosa-dark);color:#fff;font-family:var(--font-d);font-weight:700;font-size:1rem;border:none;border-radius:999px;cursor:pointer;overflow:hidden;isolation:isolate;transition:transform .3s var(--tr),box-shadow .3s var(--tr)}
+.btn-gen:hover{transform:rotate(-1.5deg) scale(1.03);box-shadow:0 12px 36px rgba(225,74,148,.38)}
+.btn-sec{background:transparent;color:var(--gris);border:1.5px solid var(--gris-medio);padding:.65rem 1.3rem;border-radius:999px;font-size:.84rem;font-weight:600;cursor:pointer;transition:all .22s var(--tr);display:inline-flex;align-items:center;gap:.4rem}
+.btn-sec:hover{border-color:var(--rosa);color:var(--rosa-dark)}
+.btn-demo{background:linear-gradient(135deg,var(--verde),var(--azul));color:#fff;border:none;padding:.8rem 1.8rem;border-radius:999px;font-family:var(--font-d);font-weight:700;font-size:.95rem;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;transition:all .25s var(--tr);box-shadow:0 8px 24px rgba(16,185,129,.3)}
+.btn-demo:hover{transform:scale(1.04);box-shadow:0 12px 36px rgba(16,185,129,.4)}
+
+/* TOAST */
+.toast-t{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(130%);background:var(--azul-dark);color:#fff;padding:.85rem 1.3rem;border-radius:999px;font-size:.85rem;font-weight:600;box-shadow:var(--sh-lg);z-index:9999;display:flex;align-items:center;gap:.5rem;transition:transform .3s var(--tr);pointer-events:none;max-width:90vw}
+.toast-t.show{transform:translateX(-50%) translateY(0)}
+.toast-t.ok{background:var(--verde)}
+.toast-t.ai{background:var(--purpura)}
+
+/* CARDS INFO */
+.info-card{background:#fff;border-radius:var(--r-md);padding:1.6rem;box-shadow:var(--sh-sm);border:1px solid var(--gris-medio);transition:all .3s var(--tr);height:100%}
+.info-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md);border-color:var(--rosa)}
+.info-card-n{font-family:var(--font-d);font-weight:800;font-size:2rem;color:var(--rosa);line-height:1;margin-bottom:.5rem}
+
+/* FEATURE BADGES */
+.feat-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .85rem;border-radius:999px;font-size:.76rem;font-weight:600;margin:.2rem}
+.feat-badge.ai{background:var(--purpura-light);color:var(--purpura)}
+.feat-badge.img{background:#fff8e1;color:var(--dorado-dark);border:1px solid var(--dorado)}
+.feat-badge.demo{background:var(--verde-light);color:var(--verde-dark)}
+
+/* GUIDE BOX */
+.guide-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);border-radius:var(--r-md);margin-bottom:1.8rem}
+.guide-head{padding:1rem 1.4rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-d);font-weight:700;font-size:.9rem;color:#fff;user-select:none;border-radius:var(--r-md)}
+.guide-head:hover{background:rgba(255,255,255,.05)}
+.guide-body{padding:0 1.4rem 1.4rem;display:none}
+.guide-body.open{display:block}
+.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.guide-item{display:flex;gap:.75rem;background:rgba(255,255,255,.07);border-radius:var(--r-sm);padding:.9rem;border:1px solid rgba(255,255,255,.1)}
+.guide-item strong{font-size:.85rem;color:#fff;display:block;margin-bottom:.25rem}
+.guide-item p{font-size:.77rem;color:rgba(255,255,255,.72);margin:0;line-height:1.55}
+.guide-num{width:24px;height:24px;background:var(--dorado);color:var(--azul-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0;margin-top:.1rem}
+
+/* DEMO HINT */
+.demo-hint{background:rgba(124,58,237,.07);border:1px dashed rgba(124,58,237,.25);border-radius:var(--r-sm);padding:.7rem 1rem;margin-bottom:1.5rem}
+
+/* IMAGE UPLOAD */
+.img-action-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.35rem}
+.btn-upload{display:inline-flex;align-items:center;gap:.35rem;background:var(--azul-light);color:var(--azul-dark);border:1.5px dashed var(--azul);border-radius:6px;padding:.26rem .7rem;font-size:.67rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-upload:hover{background:var(--azul);color:#fff;border-style:solid}
+.upload-hint{font-size:.69rem;color:var(--gris);font-style:italic;margin:.25rem 0 0;display:block}
+
+/* PROMPTS DRAWER */
+.prompts-drawer{position:fixed;right:0;top:0;height:100vh;width:min(460px,95vw);background:#fff;box-shadow:-6px 0 40px rgba(0,0,0,.18);z-index:6000;overflow-y:auto;padding:1.6rem;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.prompts-drawer.open{transform:translateX(0)}
+.prompts-drawer-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;margin-bottom:1rem;padding-bottom:.9rem;border-bottom:1px solid var(--gris-medio)}
+.prompts-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:5999;display:none}
+.prompts-drawer-overlay.show{display:block}
+
+/* APA PANEL */
+.apa-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.95);background:#fff;border-radius:var(--r-xl);box-shadow:0 32px 80px rgba(0,0,0,.22);z-index:6000;width:min(600px,95vw);max-height:88vh;overflow-y:auto;padding:2rem;opacity:0;pointer-events:none;transition:all .28s cubic-bezier(.4,0,.2,1)}
+.apa-panel.open{opacity:1;pointer-events:all;transform:translate(-50%,-50%) scale(1)}
+.apa-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:5999;display:none;backdrop-filter:blur(3px)}
+.apa-overlay.show{display:block}
+.apa-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.7rem}
+
+/* RESPONSIVE */
+@media(max-width:768px){.sec{padding:3rem 0}.hero{padding:3rem 0 4rem}.fc{padding:1.4rem}.s-2col{grid-template-columns:1fr}.guide-grid{grid-template-columns:1fr}.apa-row{grid-template-columns:1fr}}
+@media print{.hdr,.gen-wrap,.toast-t,.scroll-bar{display:none!important}}
+</style>
+</head>
+<body>
+
+<div class="scroll-bar" id="scrollBar"></div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="container-fluid px-3 px-md-5 py-2">
+    <div class="d-flex align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <!-- Ícono especialidad Diseño de Modas -->
+        <svg width="36" height="36" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <circle cx="20" cy="20" r="20" fill="#e14a94"/>
+          <polygon points="20,9 28,16 26,31 14,31 12,16" fill="white"/>
+          <rect x="17" y="6" width="6" height="5" rx="2.5" fill="white"/>
+        </svg>
+        <!-- Logo IDC Modas SVG -->
+        <svg viewBox="0 0 200 52" height="38" xmlns="http://www.w3.org/2000/svg" class="d-none d-md-block">
+          <polygon points="11,2 19,2 16,10 14,10" fill="#e14a94"/>
+          <circle cx="15" cy="17" r="3" fill="#e14a94"/>
+          <rect x="13" y="22" width="5" height="14" rx="2.5" fill="#e14a94"/>
+          <rect x="25" y="12" width="5" height="24" rx="2.5" fill="#e14a94"/>
+          <path d="M30 17 Q42 17 42 24 Q42 31 30 31" fill="none" stroke="#e14a94" stroke-width="5" stroke-linecap="round"/>
+          <path d="M58 17 Q46 17 46 24 Q46 31 58 31" fill="none" stroke="#e14a94" stroke-width="5" stroke-linecap="round"/>
+          <text x="65" y="25" font-family="'Segoe UI',sans-serif" font-size="11" fill="#555553">diseño &amp; comunicación</text>
+          <text x="13" y="45" font-family="'Segoe UI',sans-serif" font-size="8" fill="#868686">Programa de Estudios · Diseño de Modas</text>
+        </svg>
+        <div class="d-none d-lg-block" style="border-left:1px solid var(--gris-medio);padding-left:.9rem">
+          <p style="font-family:var(--font-d);font-weight:700;font-size:.9rem;color:var(--azul-dark);margin:0">Trabajo de Suficiencia Profesional</p>
+          <p style="font-size:.66rem;color:var(--gris);text-transform:uppercase;letter-spacing:.08em;margin:0">IDC · APA 7.ª · Asistido por IA</p>
+        </div>
+      </div>
+      <nav class="d-flex gap-2 flex-wrap">
+        <a href="#generador" class="np">Generador</a>
+        <a href="#" class="np" onclick="toggleApaPanel();return false">APA 7.ª</a>
+        <a href="#" class="np" onclick="togglePromptsDrawer();return false">🎨 Prompts</a>
+        <a href="#" class="np" style="opacity:.65;font-size:.72rem" onclick="activarDemo();return false">⊙ Demo</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-c">
+    <div class="d-flex align-items-center gap-3 mb-2">
+      <svg width="44" height="44" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;opacity:.9">
+        <circle cx="20" cy="20" r="20" fill="rgba(255,255,255,.15)"/>
+        <polygon points="20,9 28,16 26,31 14,31 12,16" fill="white"/>
+        <rect x="17" y="6" width="6" height="5" rx="2.5" fill="white"/>
+      </svg>
+      <span class="eyebrow">TSP Diseño de Modas · IDC 2026 · Asistido por IA</span>
+    </div>
+    <h1 class="hero-t">Trabajo de <span class="ac">Suficiencia</span><br>Profesional</h1>
+    <p class="hero-lead">El TSP es el instrumento de evaluación final que acredita tu competencia como profesional titulada en Diseño de Modas. El informe escrito vale el <strong style="color:var(--dorado)">30%</strong> y la Sustentación Oral ante Jurado el <strong style="color:var(--dorado)">70%</strong>. Esta herramienta te guía campo por campo con sugerencias académicas, prompts de imagen y un generador de citas APA 7.ª para que construyas una presentación de titulación sólida y profesional.</p>
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <span class="feat-badge ai">✦ IA por campo</span>
+      <span class="feat-badge img">📎 Sube tus imágenes</span>
+      <span class="feat-badge" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25)">APA 7.ª integrado</span>
+    </div>
+    <div class="hstats">
+      <div><div class="hstat-n">15</div><div class="hstat-l">Secciones TSP</div></div>
+      <div><div class="hstat-n">50+</div><div class="hstat-l">Sugerencias IA</div></div>
+      <div><div class="hstat-n">15</div><div class="hstat-l">Prompts de imagen</div></div>
+      <div><div class="hstat-n">30/70</div><div class="hstat-l">Escrito / Oral</div></div>
+    </div>
+    <div class="ai-hero-badge">
+      <span class="ai-pulse"></span>
+      IA activa · Haz clic en cualquier botón ✦ para recibir sugerencias
+    </div>
+  </div>
+</section>
+
+<!-- GENERADOR -->
+<section class="sec gen-wrap" id="generador">
+<div class="container" style="position:relative;z-index:2">
+  <p class="sec-ey">Generador Interactivo</p>
+  <h2 class="sec-t">Completa tu TSP con <span class="ac">ayuda de IA</span></h2>
+
+  <!-- GUÍA ACORDEÓN -->
+  <div class="guide-box">
+    <div class="guide-head" onclick="toggleGuide()">
+      <span>📋 Guía para completar tu TSP correctamente — léela antes de empezar</span>
+      <span id="guideArrow">▼</span>
+    </div>
+    <div class="guide-body" id="guideBody">
+      <div class="guide-grid">
+        <div class="guide-item">
+          <span class="guide-num">1</span>
+          <div><strong>Título del TSP</strong><p>Máx. 25 palabras. Estructura obligatoria: <em>Verbo de acción + objeto de estudio + línea temática + lugar + año</em>. Ejemplo: «Diseño de colección cápsula sostenible mediante técnicas de upcycling para el mercado juvenil limeño, 2025». Evita nombres propios de marcas comerciales en el título.</p></div>
+        </div>
+        <div class="guide-item">
+          <span class="guide-num">2</span>
+          <div><strong>Resumen ejecutivo</strong><p>Redacta en tercera persona. Incluye: empresa, cargo, período, logros medibles y línea de investigación. Máx. 150 palabras. El jurado lo lee primero y forma su primera impresión.</p></div>
+        </div>
+        <div class="guide-item">
+          <span class="guide-num">3</span>
+          <div><strong>Objetivos (general y específicos)</strong><p>El objetivo general debe comenzar con <strong>verbo en infinitivo</strong>: Diseñar, Implementar, Desarrollar. Los tres objetivos específicos deben ser medibles y usar verbos de nivel Bloom: Investigar, Diseñar, Validar. Cada OE sustenta un capítulo del informe.</p></div>
+        </div>
+        <div class="guide-item">
+          <span class="guide-num">4</span>
+          <div><strong>Marco teórico</strong><p>Cita solo fuentes de los <strong>últimos 5 años</strong> en formato APA 7.ª. Incluye al menos 1 autor peruano o latinoamericano. Usa el botón <strong>APA 7.ª</strong> de la barra superior para construir tus referencias correctamente.</p></div>
+        </div>
+        <div class="guide-item">
+          <span class="guide-num">5</span>
+          <div><strong>Logros y mejoras (cuantifica)</strong><p>El jurado valora resultados concretos. Usa porcentajes, cantidades y métricas: «Colección de 8 prendas con 92% de aceptación», «Reducción de merma en 35%». La autoreflexión sobre tu práctica profesional es parte de la evaluación oral (70%).</p></div>
+        </div>
+        <div class="guide-item">
+          <span class="guide-num">6</span>
+          <div><strong>Imágenes en la presentación</strong><p>Cada slide puede llevar una imagen tuya: fotografía de producto, lookbook, ficha técnica, evidencia del proceso. Usa el botón <strong>📎 Subir imagen</strong> de cada campo. Si no tienes fotografía, usa los <strong>Prompts IA</strong> para generarla. Las imágenes deben ser de tu autoría o con crédito APA.</p></div>
+        </div>
+      </div>
+      <p style="font-size:.77rem;color:rgba(255,255,255,.65);margin-top:1rem;padding-top:.8rem;border-top:1px dashed rgba(255,255,255,.2)">Cada campo tiene un botón <strong style="color:var(--dorado)">✦ IA</strong> con sugerencias académicas. <strong>Las sugerencias son modelos orientadores — debes adaptarlas a tu experiencia laboral real y tu proyecto personal</strong> para alcanzar el título profesional en Diseño de Modas.</p>
+    </div>
+  </div>
+
+  <div class="fc">
+
+    <!-- DEMO HINT sutil -->
+    <div class="demo-hint">
+      <span style="font-size:.82rem;color:var(--gris)">¿Primera vez completando un TSP? </span>
+      <button onclick="activarDemo()" style="background:none;border:none;color:var(--purpura);font-size:.82rem;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Ver demo con datos de ejemplo</button>
+      <span style="font-size:.78rem;color:var(--gris)"> — observa cómo se completa cada campo con un proyecto real de Diseño de Modas.</span>
+    </div>
+
+    <!-- PASO 1: DATOS -->
+    <div class="step-lbl"><span class="sn">1</span>Datos del estudiante y del TSP</div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="lbl">Apellidos y nombres <span class="req">*</span></label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="autor" placeholder="Ej. García Quispe, María Fernanda"/>
+          <button class="btn-ai" onclick="abrirModal('autor','nombre')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>✦ IA
+          </button>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="lbl">DNI</label>
+        <input type="text" class="ctrl" id="dni" placeholder="12345678"/>
+      </div>
+      <div class="col-md-3">
+        <label class="lbl">Año</label>
+        <input type="text" class="ctrl" id="anio" placeholder="2026" value="2026"/>
+      </div>
+      <div class="col-12">
+        <label class="lbl">Título del TSP <span class="req">*</span></label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="titulo" placeholder="Verbo de acción + objeto + línea temática + lugar + año (máx. 25 palabras)"/>
+          <button class="btn-ai" onclick="abrirModal('titulo','titulo')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>✦ IA
+          </button>
+        </div>
+        <p class="ctrl-hint">Máx. 25 palabras · Estructura: Verbo + objeto + línea temática + lugar + año</p>
+        <div class="img-action-row">
+          <button class="btn-img-prompt" onclick="abrirModal('titulo','img-portada')">🎨 Prompt imagen portada</button>
+          <label class="btn-upload" for="file-portada">📎 Subir mi imagen de portada</label>
+          <input type="file" id="file-portada" accept="image/*" style="display:none" onchange="cargarImagen(this,'portada')"/>
+          <img id="preview-portada" style="display:none;max-height:60px;border-radius:4px;vertical-align:middle"/>
+        </div>
+        <p class="upload-hint">Puedes subir una fotografía de tu colección, lookbook o imagen editorial propia. Recuerda que las imágenes deben reflejar tu trabajo real para una presentación de titulación profesional.</p>
+      </div>
+      <div class="col-md-4">
+        <label class="lbl">Asesor(a)</label>
+        <input type="text" class="ctrl" id="asesor" placeholder="Mg. Juan Pérez Torres"/>
+      </div>
+      <div class="col-md-4">
+        <label class="lbl">Semestre</label>
+        <select class="ctrl" id="semestre">
+          <option value="2026-I">2026-I</option>
+          <option value="2025-II">2025-II</option>
+          <option value="2026-II">2026-II</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="lbl">Línea de investigación</label>
+        <select class="ctrl" id="linea" onchange="actualizarLinea()">
+          <option value="Moda sostenible y reciclaje textil">DM-L1 · Moda sostenible</option>
+          <option value="Innovación textil">DM-L2 · Innovación textil</option>
+          <option value="Diseño de moda inclusivo">DM-L3 · Moda inclusiva</option>
+          <option value="Tendencias y consumo responsable">DM-L4 · Tendencias</option>
+          <option value="Tecnología en la moda">DM-L5 · Fashion Tech</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- PASO 2: DEDICATORIA Y AGRADECIMIENTO -->
+    <div class="step-lbl"><span class="sn">2</span>Dedicatoria y Agradecimiento</div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="lbl">Dedicatoria</label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="dedicatoria" rows="3" placeholder="A mis padres, quienes con su esfuerzo y dedicación me permitieron alcanzar esta meta profesional..."></textarea>
+          <button class="btn-ai textarea-pos" onclick="abrirModal('dedicatoria','dedicatoria')">✦ IA</button>
+        </div>
+        <p class="ctrl-hint">150–250 caracteres · Breve, personal y sincera. Menciona a quienes te apoyaron en tu formación.</p>
+      </div>
+      <div class="col-md-6">
+        <label class="lbl">Agradecimiento</label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="agradecimiento" rows="3" placeholder="A la institución IDC, a mi asesora Mg. Carmen Salazar y a la empresa Tierra Textil por brindarme la oportunidad..."></textarea>
+          <button class="btn-ai textarea-pos" onclick="abrirModal('agradecimiento','agradecimiento')">✦ IA</button>
+        </div>
+        <p class="ctrl-hint">200–400 caracteres · Menciona: institución IDC, asesor(a), empresa, docentes y/o compañeros.</p>
+      </div>
+    </div>
+
+    <!-- PASO 3: RESUMEN E INTRODUCCIÓN -->
+    <div class="step-lbl"><span class="sn">3</span>Resumen Ejecutivo e Introducción</div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="lbl">Empresa / Marca / Taller <span class="req">*</span></label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="empresa" placeholder="Ej. Atelier Lima S.A.C."/>
+          <button class="btn-ai" onclick="abrirModal('empresa','empresa')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="lbl">Cargo</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="cargo" placeholder="Ej. Diseñadora junior"/>
+          <button class="btn-ai" onclick="abrirModal('cargo','cargo')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="lbl">Período laboral</label>
+        <input type="text" class="ctrl" id="periodo" placeholder="Ene 2024 – Dic 2025"/>
+      </div>
+      <div class="col-12">
+        <label class="lbl">Síntesis de experiencia profesional <span class="req">*</span></label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="resumen" rows="3" placeholder="Describe tu experiencia laboral: sector, logros principales y aportes al campo de la moda..."></textarea>
+          <button class="btn-ai textarea-pos" onclick="abrirModal('resumen','resumen')">✦ IA</button>
+        </div>
+        <p class="ctrl-hint">400–600 caracteres · Incluye: sector, empresa, logros medibles, línea de investigación.</p>
+        <div class="img-action-row">
+          <button class="btn-img-prompt" onclick="abrirModal('resumen','img-resumen')">🎨 Prompt imagen</button>
+          <label class="btn-upload" for="file-resumen">📎 Subir imagen de mi entorno laboral</label>
+          <input type="file" id="file-resumen" accept="image/*" style="display:none" onchange="cargarImagen(this,'resumen')"/>
+          <img id="preview-resumen" style="display:none;max-height:60px;border-radius:4px;vertical-align:middle"/>
+        </div>
+      </div>
+      <div class="col-12">
+        <label class="lbl">Introducción / Contexto profesional</label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="introduccion" rows="3" placeholder="El presente informe contextualiza la experiencia laboral en el sector de la moda peruana, el mercado textil y el ámbito creativo-cultural..."></textarea>
+          <button class="btn-ai textarea-pos" onclick="abrirModal('introduccion','introduccion')">✦ IA</button>
+        </div>
+        <p class="ctrl-hint">500–800 caracteres · Contextualiza tu experiencia en el sector moda, la Economía Naranja y la línea de investigación elegida.</p>
+      </div>
+    </div>
+
+    <!-- PASO 4: PROYECTO -->
+    <div class="step-lbl"><span class="sn">4</span>Descripción del Proyecto / Actividad Profesional</div>
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <label class="lbl">Nombre del proyecto / colección / producto <span class="req">*</span></label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="proyecto" placeholder="Ej. Colección cápsula 'Terra' — 8 prendas upcycled con algodón nativo peruano"/>
+          <button class="btn-ai" onclick="abrirModal('proyecto','proyecto')">✦ IA</button>
+        </div>
+        <div class="img-action-row">
+          <button class="btn-img-prompt" onclick="abrirModal('proyecto','img-proyecto')">🎨 Prompt imagen</button>
+          <label class="btn-upload" for="file-proyecto">📎 Subir imagen de mi proyecto</label>
+          <input type="file" id="file-proyecto" accept="image/*" style="display:none" onchange="cargarImagen(this,'proyecto')"/>
+          <img id="preview-proyecto" style="display:none;max-height:60px;border-radius:4px;vertical-align:middle"/>
+        </div>
+        <p class="upload-hint">Sube la fotografía, ficha técnica o boceto de tu colección o proyecto real. Puedes modificar las imágenes según la narrativa visual que necesites para tu exposición ante el jurado.</p>
+      </div>
+      <div class="col-md-6">
+        <label class="lbl">Tecnología / técnica empleada</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="tecnologia" placeholder="Ej. CLO3D, Patronaje zero-waste, Serigrafía digital"/>
+          <button class="btn-ai" onclick="abrirModal('tecnologia','tecnologia')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="lbl">Marco teórico principal</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="marco" placeholder="Ej. Teoría del diseño circular (Ellen MacArthur, 2022)"/>
+          <button class="btn-ai" onclick="abrirModal('marco','marco')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-12">
+        <label class="lbl">Objetivo general del proyecto</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="obj_general" placeholder="Ej. Diseñar una colección de 8 prendas sostenibles para el segmento juvenil..."/>
+          <button class="btn-ai" onclick="abrirModal('obj_general','obj_general')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="lbl">Objetivo específico 1</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="oe1" placeholder="Investigar tendencias..."/>
+          <button class="btn-ai" onclick="abrirModal('oe1','oe')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="lbl">Objetivo específico 2</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="oe2" placeholder="Diseñar y confeccionar..."/>
+          <button class="btn-ai" onclick="abrirModal('oe2','oe')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="lbl">Objetivo específico 3</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="oe3" placeholder="Validar ante jurado..."/>
+          <button class="btn-ai" onclick="abrirModal('oe3','oe')">✦ IA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 5: CONTEXTO LABORAL -->
+    <div class="step-lbl"><span class="sn">5</span>Contexto Laboral (Cap. 2)</div>
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <label class="lbl">Descripción de funciones realizadas</label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="funciones" rows="3" placeholder="Describe las funciones que desempeñaste: diseño de colecciones, patronaje, confección, gestión de tendencias, coordinación..."></textarea>
+          <button class="btn-ai textarea-pos" onclick="abrirModal('funciones','funciones')">✦ IA</button>
+        </div>
+        <p class="ctrl-hint">300–500 caracteres · Lista las funciones principales de tu cargo en la empresa/taller.</p>
+        <div class="img-action-row">
+          <button class="btn-img-prompt" onclick="abrirModal('funciones','img-contexto')">🎨 Prompt imagen contexto laboral</button>
+          <label class="btn-upload" for="file-contexto">📎 Subir foto de mi espacio de trabajo</label>
+          <input type="file" id="file-contexto" accept="image/*" style="display:none" onchange="cargarImagen(this,'contexto')"/>
+          <img id="preview-contexto" style="display:none;max-height:60px;border-radius:4px;vertical-align:middle"/>
+        </div>
+      </div>
+      <div class="col-12">
+        <label class="lbl">Descripción del proceso por fases (Cap. 3)</label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="proceso" rows="3" placeholder="Describe las fases del proyecto: Investigación → Diseño → Confección → Validación. Detalla qué hiciste en cada etapa..."></textarea>
+          <button class="btn-ai textarea-pos" onclick="abrirModal('proceso','proceso')">✦ IA</button>
+        </div>
+        <p class="ctrl-hint">400–700 caracteres · Detalla cada fase: investigación, diseño, confección/producción y validación.</p>
+        <div class="img-action-row">
+          <button class="btn-img-prompt" onclick="abrirModal('proceso','img-proceso')">🎨 Prompt imagen proceso</button>
+          <label class="btn-upload" for="file-proceso">📎 Subir foto del proceso</label>
+          <input type="file" id="file-proceso" accept="image/*" style="display:none" onchange="cargarImagen(this,'proceso')"/>
+          <img id="preview-proceso" style="display:none;max-height:60px;border-radius:4px;vertical-align:middle"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 6: RESULTADOS -->
+    <div class="step-lbl"><span class="sn">6</span>Evaluación, Resultados y Mejoras (Cap. 4)</div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="lbl">Principal logro / resultado obtenido</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="logro" placeholder="Ej. Colección de 8 prendas validada con 92% de aceptación"/>
+          <button class="btn-ai" onclick="abrirModal('logro','logro')">✦ IA</button>
+        </div>
+        <div class="img-action-row">
+          <button class="btn-img-prompt" onclick="abrirModal('logro','img-resultado')">🎨 Prompt imagen</button>
+          <label class="btn-upload" for="file-resultado">📎 Subir evidencia fotográfica</label>
+          <input type="file" id="file-resultado" accept="image/*" style="display:none" onchange="cargarImagen(this,'resultado')"/>
+          <img id="preview-resultado" style="display:none;max-height:60px;border-radius:4px;vertical-align:middle"/>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="lbl">Mejora principal aplicada</label>
+        <div class="input-ai-wrap">
+          <input type="text" class="ctrl has-ai-btn" id="mejora" placeholder="Ej. Reducción de merma textil en 35%"/>
+          <button class="btn-ai" onclick="abrirModal('mejora','mejora')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-12">
+        <label class="lbl">Conclusión principal</label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="conclusion" rows="2" placeholder="Redacta una conclusión categórica que derive de la experiencia y los resultados..."></textarea>
+          <button class="btn-ai textarea-pos" onclick="abrirModal('conclusion','conclusion')">✦ IA</button>
+        </div>
+      </div>
+      <div class="col-12">
+        <label class="lbl">Recomendación principal al sector</label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="recomendacion" rows="2" placeholder="Plantea sugerencias accionables para el sector de la moda y la empleabilidad..."></textarea>
+          <button class="btn-ai textarea-pos" onclick="abrirModal('recomendacion','recomendacion')">✦ IA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 7: REFERENCIAS APA (INLINE) -->
+    <div class="step-lbl"><span class="sn">7</span>Referencias Bibliográficas APA 7.ª</div>
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <label class="lbl">Referencias incluidas en tu informe</label>
+        <div class="input-ai-wrap">
+          <textarea class="ctrl has-ai-btn" id="referencias" rows="4" placeholder="Fletcher, K. (2022). Fashion &amp; Sustainability. Laurence King.&#10;Pookulangara, S. &amp; Shephard, A. (2023). Slow fashion movement. Journal of Retailing, 30(4), 200–210."></textarea>
+          <button class="btn-ai textarea-pos" onclick="toggleApaPanel();return false">✦ Generar cita APA</button>
+        </div>
+        <p class="ctrl-hint">Usa el generador APA 7.ª para construir cada cita y pégala aqui. Min. 5 referencias de los últimos 5 años.</p>
+        <div class="img-action-row">
+          <button class="btn-ai" style="position:static;font-size:.72rem;padding:.35rem .8rem" onclick="toggleApaPanel();return false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+            Abrir generador APA 7.ª para agregar cita
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="d-flex gap-3 align-items-center flex-wrap">
+      <button class="btn-gen" onclick="generarPresentacion()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Generar Presentación
+      </button>
+      <button class="btn-sec" onclick="guardar()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar borrador
+      </button>
+      <button class="btn-sec" onclick="limpiar()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+        Limpiar
+      </button>
+    </div>
+
+    <!-- SLIDES PREVIEW -->
+    <div class="slides-preview" id="slidesPreview" style="display:none">
+      <div style="background:rgba(255,255,255,.08);border-radius:var(--r-md);padding:1.2rem 1.4rem;margin:1.5rem 0 1rem;border:1px solid rgba(255,255,255,.15)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:.3rem">
+          <svg width="22" height="22" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="rgba(255,255,255,.18)"/><polygon points="20,9 28,16 26,31 14,31 12,16" fill="white"/><rect x="17" y="6" width="6" height="5" rx="2.5" fill="white"/></svg>
+          <p style="font-family:var(--font-d);font-weight:700;font-size:1.1rem;color:#fff;margin:0"><span id="totalS">0</span> diapositivas · Previsualización de referencia</p>
+        </div>
+        <p style="color:rgba(255,255,255,.68);font-size:.82rem;margin:0;line-height:1.5">Esta es una <strong style="color:#fff">previsualización de referencia</strong> del contenido de tu presentación TSP. Para crear la versión final usa <strong style="color:var(--dorado)">PowerPoint</strong>, <strong style="color:var(--dorado)">Canva Presentaciones</strong>, <strong style="color:var(--dorado)">Kimi</strong> o <strong style="color:var(--dorado)">Gamma</strong> con la estructura y textos aquí generados. Los logos IDC se incluyen como referencia visual.</p>
+      </div>
+      <div class="slides-nav" id="slidesNav"></div>
+      <div class="slide-canvas" id="slideCanvas"></div>
+      <div class="slide-ctrl">
+        <button class="btn-nav-s" id="bPrev" onclick="navSlide(-1)" disabled>◀ Anterior</button>
+        <span class="slide-ctr"><span id="sAct">1</span> / <span id="sTot">1</span></span>
+        <button class="btn-nav-s" id="bNext" onclick="navSlide(1)">Siguiente ▶</button>
+      </div>
+      <div class="exp-panel">
+        <p style="font-family:var(--font-d);font-weight:700;font-size:1rem;color:var(--azul-dark);margin-bottom:.9rem">Exportar contenido del TSP</p>
+        <div class="exp-grid">
+          <div class="exp-card" onclick="expWord()" style="border-color:var(--azul)"><div class="exp-icon" style="background:#2B579A;color:#fff">📝</div><div style="font-weight:700;font-size:.88rem;color:var(--azul-dark)">Word (.doc)</div><div style="font-size:.76rem;color:var(--gris)">Informe completo TSP en Word</div></div>
+          <div class="exp-card" onclick="expHTML()"><div class="exp-icon" style="background:var(--azul);color:#fff">🌐</div><div style="font-weight:700;font-size:.88rem;color:var(--azul-dark)">HTML interactivo</div><div style="font-size:.76rem;color:var(--gris)">Presentación web completa</div></div>
+          <div class="exp-card" onclick="expPrompts()"><div class="exp-icon" style="background:var(--purpura);color:#fff">🎨</div><div style="font-weight:700;font-size:.88rem;color:var(--azul-dark)">Prompts de imágenes</div><div style="font-size:.76rem;color:var(--gris)">Todos los prompts en .txt</div></div>
+          <div class="exp-card" onclick="window.print()"><div class="exp-icon" style="background:var(--gris);color:#fff">🖨️</div><div style="font-weight:700;font-size:.88rem;color:var(--azul-dark)">PDF / Imprimir</div><div style="font-size:.76rem;color:var(--gris)">Ctrl+P → Guardar PDF</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- PROMPTS DRAWER (panel lateral) -->
+<div class="prompts-drawer" id="promptsDrawer">
+  <div class="prompts-drawer-head">
+    <div>
+      <p style="font-family:var(--font-d);font-weight:700;font-size:1rem;color:var(--azul-dark);margin:0">🎨 Banco de Prompts de Imagen</p>
+      <p style="font-size:.75rem;color:var(--gris);margin:.2rem 0 0">Para Midjourney, DALL·E 3, Adobe Firefly o Stable Diffusion</p>
+    </div>
+    <button onclick="togglePromptsDrawer()" style="background:var(--gris-claro);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:.9rem;flex-shrink:0">✕</button>
+  </div>
+  <div id="prompts-drawer-content"></div>
+</div>
+<div class="prompts-drawer-overlay" id="promptsOverlay" onclick="togglePromptsDrawer()"></div>
+
+<!-- APA GENERATOR PANEL -->
+<div class="apa-panel" id="apaPanel">
+  <div class="prompts-drawer-head" style="margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1px solid var(--gris-medio)">
+    <div>
+      <p style="font-family:var(--font-d);font-weight:700;font-size:1.1rem;color:var(--azul-dark);margin:0">Generador de Citas APA 7.ª</p>
+      <p style="font-size:.76rem;color:var(--gris);margin:.2rem 0 0">Para referencias bibliográficas del marco teórico y anexos</p>
+    </div>
+    <button onclick="toggleApaPanel()" style="background:var(--gris-claro);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:.9rem;flex-shrink:0">✕</button>
+  </div>
+  <label class="lbl">Tipo de fuente</label>
+  <select id="apaTipo" class="ctrl" onchange="renderApaForm()" style="margin-bottom:1rem">
+    <option value="libro">📚 Libro</option>
+    <option value="articulo">📄 Artículo de revista académica</option>
+    <option value="web">🌐 Sitio web / recurso en línea</option>
+    <option value="tesis">🎓 Tesis / TSP / trabajo académico</option>
+    <option value="ia">🤖 Herramienta de IA (ChatGPT, Midjourney, etc.)</option>
+  </select>
+  <div id="apaFormFields"></div>
+  <button class="btn-gen" style="padding:.7rem 1.4rem;font-size:.88rem;margin-top:.8rem;width:100%;justify-content:center" onclick="generarAPA()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+    Generar cita APA 7.ª
+  </button>
+  <div id="apaResult" style="display:none;margin-top:1rem;background:var(--azul-light);border-radius:var(--r-sm);padding:1rem">
+    <p style="font-size:.7rem;font-weight:700;color:var(--azul-dark);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem">Cita generada:</p>
+    <p style="font-family:var(--font-b);font-size:.86rem;color:var(--azul-dark);line-height:1.8;margin:0" id="apaOutput"></p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem">
+      <button class="btn-copy-prompt" onclick="insertarAPAenDoc()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Insertar en mi documento
+      </button>
+      <button class="btn-copy-prompt" style="background:var(--azul)" onclick="copiarAPA()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar cita
+      </button>
+    </div>
+    <p style="font-size:.68rem;color:var(--gris);margin:.6rem 0 0">«Insertar en mi documento» agrega la cita al campo de Referencias del formulario. Verifica antes de incluirla.</p>
+  </div>
+</div>
+<div class="apa-overlay" id="apaOverlay" onclick="toggleApaPanel()"></div>
+
+<!-- MODAL IA -->
+<div class="ai-modal-overlay" id="aiOverlay" onclick="cerrarModal(event)">
+  <div class="ai-modal" id="aiModal" role="dialog" aria-modal="true">
+    <div class="ai-modal-head">
+      <div class="ai-modal-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+      </div>
+      <div>
+        <p class="ai-modal-title" id="aiModalTitle">Asistente IA</p>
+        <p class="ai-modal-sub" id="aiModalSub">Selecciona una sugerencia o usa el prompt de imagen</p>
+      </div>
+      <button class="btn-close-modal" onclick="cerrarModalBtn()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ai-modal-body">
+      <div class="ai-loading" id="aiLoading">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span>Generando sugerencias inteligentes...</span>
+      </div>
+      <div id="aiContent">
+        <div class="ai-tab-bar" id="aiTabs"></div>
+        <div id="aiPanels"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-t" id="toast"></div>
+
+<script>
+// =====================================================================
+// BASE DE DATOS DE SUGERENCIAS IA + PROMPTS DE IMAGEN
+// =====================================================================
+const AI_DATA = {
+  nombre:{
+    titulo:'Nombre del autor',
+    sub:'Ejemplos de nombres para el informe',
+    tabs:[{label:'Sugerencias',type:'sugg'}],
+    sugg:[
+      {label:'Estilo completo APA','text':'Quispe Flores, María Fernanda'},
+      {label:'Opción 2','text':'Mamani Huanca, Andrea Lucía'},
+      {label:'Opción 3','text':'Torres Rivas, Gabriela Paola'},
+      {label:'Opción 4 (nombre compuesto)','text':'De la Cruz Mendoza, Luisa María'}
+    ]
+  },
+  titulo:{
+    titulo:'Título del TSP',
+    sub:'Títulos académicos para Diseño de Modas — APA 7.ª · Máx. 25 palabras',
+    tabs:[{label:'Línea DM-L1: Sostenible',type:'sugg'},{label:'Línea DM-L2: Innovación',type:'sugg2'},{label:'Línea DM-L3: Inclusiva',type:'sugg3'},{label:'Imagen portada',type:'img',imgKey:'img-portada'}],
+    sugg:[
+      {label:'Colección cápsula sostenible','text':'Diseño de colección cápsula sostenible mediante técnicas de upcycling para el mercado juvenil limeño, 2025'},
+      {label:'Moda circular peruana','text':'Implementación de principios de moda circular en la producción textil de una marca independiente peruana, Lima, 2025'},
+      {label:'Prendas upcycled con identidad andina','text':'Creación de prendas upcycled con identidad cultural andina para el segmento femenino 25–35 años, Cusco, 2025'},
+    ],
+    sugg2:[
+      {label:'Biomateriales en moda','text':'Desarrollo de propuesta de moda innovadora integrando biomateriales de origen peruano en prendas de exportación, Lima, 2025'},
+      {label:'Impresión 3D textil','text':'Diseño y prototipado de accesorios de moda mediante técnicas de impresión 3D y corte láser para mercado nacional, Lima, 2025'},
+    ],
+    sugg3:[
+      {label:'Moda adaptativa','text':'Diseño de colección de moda adaptativa para personas con discapacidad motora, aplicando principios de Design for All, Lima, 2025'},
+      {label:'Gerontomoda','text':'Creación de línea de gerontomoda funcional y estética para adultos mayores de 65 años del mercado peruano, 2025'},
+    ]
+  },
+  empresa:{
+    titulo:'Empresa / Marca / Taller',
+    sub:'Ejemplos de entornos laborales en Diseño de Modas',
+    tabs:[{label:'Marcas independientes',type:'sugg'},{label:'Talleres y ateliers',type:'sugg2'}],
+    sugg:[
+      {label:'Marca de moda sostenible','text':'Tierra Textil S.A.C. — marca peruana de moda sostenible'},
+      {label:'Marca de exportación','text':'Tejidos Andinos Export — empresa textil de exportación'},
+      {label:'Marca digital/e-commerce','text':'Nomada Studio — marca de moda digital e-commerce'},
+    ],
+    sugg2:[
+      {label:'Atelier de diseño','text':'Atelier Lima — diseño y confección a medida'},
+      {label:'Taller artesanal','text':'Taller Artesanal Qori — tejidos y confección andina'},
+    ]
+  },
+  cargo:{
+    titulo:'Cargo desempeñado',
+    sub:'Títulos de cargo en el sector de la moda',
+    tabs:[{label:'Cargos frecuentes',type:'sugg'}],
+    sugg:[
+      {label:'Diseñadora','text':'Diseñadora de Modas Junior'},
+      {label:'Asistente de diseño','text':'Asistente de Diseño y Desarrollo de Producto'},
+      {label:'Patronista','text':'Patronista y Desarrolladora de Producto'},
+      {label:'Coordinadora de colección','text':'Coordinadora de Diseño y Colecciones'},
+    ]
+  },
+  resumen:{
+    titulo:'Síntesis ejecutiva',
+    sub:'Párrafos de resumen ejecutivo para el informe TSP',
+    tabs:[{label:'Moda sostenible',type:'sugg'},{label:'Fashion Tech',type:'sugg2'},{label:'Imagen slide',type:'img',imgKey:'img-resumen'}],
+    sugg:[
+      {label:'Párrafo estándar sostenible','text':'La presente experiencia profesional se desarrolló en el sector de la moda sostenible peruana, donde se diseñó y ejecutó una colección cápsula de ocho prendas utilizando técnicas de upcycling y materiales de bajo impacto ambiental. Los objetivos planteados se cumplieron en un 95%, logrando la validación del producto ante jurado especializado y potenciales consumidores del segmento objetivo.'},
+      {label:'Énfasis en identidad cultural','text':'A lo largo de la experiencia laboral en una marca peruana independiente, se integraron técnicas de upcycling con identidad cultural andina, dando lugar a una propuesta de diseño diferenciada en el mercado local. Los hallazgos demuestran una creciente demanda por productos de moda que valoren el patrimonio textil peruano.'},
+    ],
+    sugg2:[
+      {label:'Fashion Tech / Digital','text':'La experiencia laboral en el sector de fashion tech permitió desarrollar prendas digitales y prototipos en CLO3D, optimizando procesos de prototipado en un 40% respecto a métodos tradicionales. Se logró la implementación de un flujo de trabajo digital-first adoptado por el área de diseño de la organización.'},
+    ]
+  },
+  proyecto:{
+    titulo:'Nombre del proyecto',
+    sub:'Nombres creativos y académicos para proyectos de moda',
+    tabs:[{label:'Colecciones',type:'sugg'},{label:'Imagen del proyecto',type:'img',imgKey:'img-proyecto'}],
+    sugg:[
+      {label:'Colección sostenible','text':'Colección cápsula «Terra» — 8 prendas upcycled con algodón nativo peruano'},
+      {label:'Fashion film','text':'Fashion film «Raíces» — producción audiovisual editorial de moda andina contemporánea'},
+      {label:'Cuaderno de tendencias','text':'Trend Book «Lima Futura 2026» — análisis prospectivo de tendencias para el mercado peruano'},
+      {label:'Colección inclusiva','text':'Colección adaptativa «Libre» — 6 prendas funcionales para personas con discapacidad motora'},
+    ]
+  },
+  tecnologia:{
+    titulo:'Tecnología / técnica empleada',
+    sub:'Herramientas y técnicas del sector de la moda',
+    tabs:[{label:'Software',type:'sugg'},{label:'Técnicas artesanales',type:'sugg2'}],
+    sugg:[
+      {label:'CLO3D + Adobe','text':'CLO3D (prototipado 3D), Adobe Illustrator (fichas técnicas), Photoshop (lookbook)'},
+      {label:'Suite digital completa','text':'Marvelous Designer, CLO3D, Procreate (bocetos digitales), Adobe Creative Suite'},
+      {label:'E-commerce','text':'Shopify, Adobe Lightroom (fotografía de producto), Canva (contenido digital)'},
+    ],
+    sugg2:[
+      {label:'Técnicas sostenibles','text':'Patronaje zero-waste, upcycling, técnica shibori natural, serigrafía con tintas ecológicas'},
+      {label:'Artesanía tecnificada','text':'Telar de cintura tecnificado, bordado computarizado, corte láser sobre fibras naturales'},
+    ]
+  },
+  marco:{
+    titulo:'Marco teórico',
+    sub:'Referencias teóricas APA 7.ª para Diseño de Modas',
+    tabs:[{label:'Autores clave',type:'sugg'}],
+    sugg:[
+      {label:'Moda sostenible','text':'Economía circular de la moda (Fletcher, 2022) y principios del slow fashion (Pookulangara & Shephard, 2023)'},
+      {label:'Innovación textil','text':'Innovación en materiales textiles sostenibles (Textile Exchange, 2023) y biomateriales emergentes (Biofabricate, 2024)'},
+      {label:'Moda inclusiva','text':'Diseño universal en moda (Cassim, 2022) y adaptive fashion como tendencia de mercado (Korn, 2023)'},
+      {label:'Fashion Tech','text':'Tecnología vestible y moda digital (Sinha, 2023) y metaverso en la industria de la moda (Bain, 2024)'},
+    ]
+  },
+  obj_general:{
+    titulo:'Objetivo general',
+    sub:'Redacción con verbo en infinitivo · APA 7.ª · Taxonomía de Bloom',
+    tabs:[{label:'Por línea DM-L1',type:'sugg'},{label:'Por línea DM-L2/L5',type:'sugg2'}],
+    sugg:[
+      {label:'Colección sostenible','text':'Diseñar una colección cápsula de ocho prendas sostenibles para el segmento juvenil femenino (18–30 años) utilizando técnicas de upcycling y materiales certificados, en Lima, durante el año 2025.'},
+      {label:'Cuaderno de tendencias','text':'Elaborar un cuaderno de tendencias para la temporada 2026 que anticipe macrotendencias del mercado peruano de la moda, promoviendo el consumo consciente e identidad cultural local.'},
+    ],
+    sugg2:[
+      {label:'Fashion Tech','text':'Desarrollar una propuesta de moda tecnológica para el segmento millennial limeño integrando diseño 3D en CLO3D con el fin de innovar en la experiencia de compra de moda, durante 2025.'},
+      {label:'Biomateriales','text':'Desarrollar una propuesta de moda innovadora para el mercado de exportación que integre biomateriales de origen peruano en la construcción de prendas, durante el año 2025.'},
+    ]
+  },
+  oe:{
+    titulo:'Objetivos específicos',
+    sub:'Redacción con verbo en infinitivo — Bloom · Niveles aplicación / análisis',
+    tabs:[{label:'OE estándar',type:'sugg'}],
+    sugg:[
+      {label:'OE 1 — Investigar','text':'Investigar las tendencias de moda sostenible, el comportamiento del consumidor y los proveedores de materiales ecoamigables en el mercado peruano.'},
+      {label:'OE 2 — Diseñar/Confeccionar','text':'Diseñar y confeccionar la colección cápsula aplicando técnicas de upcycling, patronaje zero-waste y uso de fibras naturales certificadas.'},
+      {label:'OE 3 — Validar','text':'Presentar y validar la colección ante jurado especializado y potenciales consumidores del segmento objetivo mediante encuesta de percepción.'},
+      {label:'OE alternativo — Evaluar','text':'Evaluar la viabilidad técnica y comercial del proyecto mediante juicio de expertos textiles y análisis de costos de producción.'},
+    ]
+  },
+  logro:{
+    titulo:'Logro principal',
+    sub:'Resultados cuantificables del proyecto de moda',
+    tabs:[{label:'Resultados',type:'sugg'},{label:'Imagen resultado',type:'img',imgKey:'img-resultado'}],
+    sugg:[
+      {label:'Colección validada','text':'Colección de 8 prendas presentada ante jurado especializado con 92% de aceptación y potencial de comercialización en el mercado local.'},
+      {label:'Reducción de merma','text':'Reducción de merma textil en un 35% mediante la implementación de patronaje zero-waste en el proceso de confección.'},
+      {label:'Prototipo digital','text':'Prototipo digital de 6 prendas desarrollado en CLO3D, reduciendo el tiempo de prototipado físico en un 40%.'},
+    ]
+  },
+  mejora:{
+    titulo:'Mejora aplicada',
+    sub:'Cambios positivos en procesos o productos',
+    tabs:[{label:'Mejoras de proceso',type:'sugg'}],
+    sugg:[
+      {label:'Patronaje','text':'Implementación de patronaje zero-waste que redujo los residuos textiles en un 35% en comparación con el método de corte tradicional.'},
+      {label:'Digital','text':'Adopción de flujo de trabajo digital-first con CLO3D, reduciendo en dos semanas el ciclo de diseño a prototipo.'},
+      {label:'Sostenibilidad','text':'Sustitución del 60% de insumos convencionales por materiales certificados GOTS y PET reciclado, mejorando el perfil ambiental del producto.'},
+    ]
+  },
+  conclusion:{
+    titulo:'Conclusión principal',
+    sub:'Conclusiones categóricas derivadas de la experiencia',
+    tabs:[{label:'Conclusiones modelo',type:'sugg'}],
+    sugg:[
+      {label:'Viabilidad demostrada','text':'La aplicación de técnicas de upcycling en el contexto de la industria de la moda peruana demuestra viabilidad técnica y comercial, con alta aceptación por parte del mercado objetivo y potencial de escalamiento en pequeñas y medianas empresas del sector.'},
+      {label:'Brecha tecnológica','text':'La incorporación de herramientas de diseño 3D (CLO3D) en el proceso productivo de marcas independientes peruanas optimiza significativamente los tiempos y costos de prototipado, cerrando la brecha tecnológica con el mercado internacional.'},
+    ]
+  },
+  recomendacion:{
+    titulo:'Recomendación al sector',
+    sub:'Sugerencias accionables para la industria, academia y profesionales',
+    tabs:[{label:'Recomendaciones',type:'sugg'}],
+    sugg:[
+      {label:'Para la industria','text':'Se recomienda que las marcas peruanas de moda incorporen al menos un 20% de materiales reciclados o certificados en sus colecciones para 2027, como estrategia de posicionamiento sostenible ante consumidores conscientes y mercados de exportación exigentes.'},
+      {label:'Para la academia','text':'Los programas de Diseño de Modas deben incorporar herramientas de diseño 3D (CLO3D, Marvelous Designer) y módulos de sostenibilidad aplicada como competencias obligatorias del perfil de egreso.'},
+      {label:'Para profesionales','text':'Los diseñadores de moda peruanos deben desarrollar competencias en gestión de marcas digitales y comercio electrónico, dado el crecimiento sostenido del e-commerce de moda en el país.'},
+    ]
+  },
+  dedicatoria:{
+    titulo:'Dedicatoria',
+    sub:'Texto breve y personal · 150–250 caracteres',
+    tabs:[{label:'Ejemplos',type:'sugg'}],
+    sugg:[
+      {label:'A los padres','text':'A mis padres, Rosa y Carlos, quienes con su esfuerzo y dedicación me permitieron alcanzar esta meta profesional. Su ejemplo de perseverancia guía cada paso de mi carrera.'},
+      {label:'A la familia','text':'A mi familia, por su apoyo incondicional durante estos años de formación. Cada prenda que diseño lleva la fuerza y el cariño que me han brindado desde siempre.'},
+      {label:'A un mentor','text':'A mi maestra de patronaje, quien me enseñó que en cada corte de tela hay una decisión de diseño. Su pasión por el oficio despertó la mía.'},
+    ]
+  },
+  agradecimiento:{
+    titulo:'Agradecimiento',
+    sub:'Reconocimiento formal · 200–400 caracteres',
+    tabs:[{label:'Ejemplos',type:'sugg'}],
+    sugg:[
+      {label:'Estándar académico','text':'A la institución IDC por la formación integral recibida durante el programa de Diseño de Modas. A mi asesora Mg. Carmen Salazar Vásquez por su orientación metodológica y compromiso con este trabajo. A la empresa Tierra Textil S.A.C. por facilitar el espacio y los recursos para el desarrollo del proyecto.'},
+      {label:'Con énfasis en empresa','text':'A la empresa que me brindó la oportunidad de desarrollar mi experiencia profesional, permitiéndome aplicar las competencias adquiridas en el programa. A mis docentes del IDC por su guía académica, y a mi familia por el apoyo constante durante este proceso de titulación.'},
+    ]
+  },
+  introduccion:{
+    titulo:'Introducción / Contexto profesional',
+    sub:'Contextualiza tu experiencia · 500–800 caracteres',
+    tabs:[{label:'Moda sostenible',type:'sugg'},{label:'Fashion Tech',type:'sugg2'}],
+    sugg:[
+      {label:'Contexto sostenible','text':'El presente informe contextualiza la experiencia laboral desarrollada en el sector de la moda sostenible peruana, enmarcada en la Economía Naranja y el creciente interés del mercado nacional por productos textiles de bajo impacto ambiental. La industria de la moda en el Perú atraviesa un proceso de transformación hacia prácticas de producción responsable, lo cual genera oportunidades para profesionales formados en diseño circular y técnicas de upcycling.'},
+      {label:'Contexto de mercado','text':'La industria de la moda peruana representa un sector estratégico dentro de la economía creativa nacional. El presente informe documenta la experiencia profesional del autor en el desarrollo de productos textiles orientados al segmento juvenil, integrando criterios de sostenibilidad y tendencias de consumo consciente identificadas en los últimos tres años.'},
+    ],
+    sugg2:[
+      {label:'Contexto digital','text':'La transformación digital en la industria de la moda ha acelerado la adopción de herramientas de diseño 3D, prototipado virtual y comercio electrónico. El presente informe documenta la experiencia profesional en la integración de tecnologías como CLO3D y flujos de trabajo digitales en el proceso de diseño y producción de una marca independiente peruana.'},
+    ]
+  },
+  funciones:{
+    titulo:'Funciones realizadas',
+    sub:'Describe tus responsabilidades en la empresa · 300–500 caracteres',
+    tabs:[{label:'Funciones típicas',type:'sugg'}],
+    sugg:[
+      {label:'Diseñadora junior','text':'Diseño de colecciones temporada: investigación de tendencias, elaboración de moodboards, bocetado de figurines, selección de materiales y paleta de color. Patronaje y confección de prototipos. Seguimiento de producción con proveedores textiles. Creación de fichas técnicas y lookbook fotográfico para catálogo digital.'},
+      {label:'Asistente de diseño','text':'Apoyo en el desarrollo de producto: digitalización de bocetos en Illustrator, elaboración de fichas técnicas, control de calidad de muestras, coordinación con talleres de confección y proveedores de insumos. Participación en sesiones de fitting y ajuste de patronaje.'},
+      {label:'Coordinadora de colección','text':'Planificación y coordinación del calendario de colección. Investigación de macrotendencias y benchmarking de mercado. Supervisión del proceso desde boceto hasta prenda terminada. Gestión de presupuesto de materiales y coordinación de shootings para lookbook editorial.'},
+    ]
+  },
+  proceso:{
+    titulo:'Proceso por fases',
+    sub:'Detalla cada etapa del proyecto · 400–700 caracteres',
+    tabs:[{label:'Fases estándar',type:'sugg'}],
+    sugg:[
+      {label:'4 fases clásicas','text':'Fase 1 — Investigación: análisis de tendencias de moda sostenible, estudio de mercado objetivo (mujeres 18–30 años, Lima) y benchmarking de marcas referentes. Fase 2 — Diseño: elaboración de moodboard, bocetos de figurines, selección de paleta cromática y materiales certificados GOTS. Fase 3 — Confección: patronaje zero-waste, corte y ensamble de 8 prendas prototipo con algodón reciclado y fibras nativas. Fase 4 — Validación: presentación ante jurado especializado y encuesta de percepción a 50 consumidores del segmento objetivo.'},
+      {label:'Con énfasis en digital','text':'Fase 1 — Research: coolhunting digital, análisis WGSN y estudio de consumidor local. Fase 2 — Diseño digital: modelado 3D en CLO3D, renderizado de prototipos virtuales y iteraciones de fitting digital. Fase 3 — Producción: patronaje asistido por software, corte láser y confección de muestras físicas. Fase 4 — Presentación: lookbook editorial, fashion film y validación ante panel de expertos del sector.'},
+    ]
+  }
+};
+
+// PROMPTS DE IMAGEN
+const IMG_PROMPTS = {
+  'img-portada':{
+    titulo:'Portada del TSP · Diseño de Modas',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Fashion design thesis cover, Peruvian sustainable fashion collection, editorial photography style, models wearing upcycled garments with Andean textile patterns, warm golden hour lighting, minimalist studio background, high fashion magazine aesthetic, soft pink and deep blue color palette, --ar 16:9 --style raw --v 6`},
+      {tool:'Adobe Firefly',text:`Elegant fashion design cover image: Peruvian model wearing a sustainable capsule collection dress, natural cotton fabric with Andean embroidery details, clean white studio background, professional editorial lighting, fashion week aesthetic, rose and gold color tones`},
+    ]
+  },
+  'img-resumen':{
+    titulo:'Slide Resumen Ejecutivo',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Peruvian fashion designer at work in a modern atelier, flat lay of fabric swatches and pattern pieces on white table, sustainable textile materials, mood board with trend images, professional workspace aesthetic, warm natural light, editorial photography, top view, --ar 16:9 --style raw`},
+    ]
+  },
+  'img-proyecto':{
+    titulo:'Slide Proyecto / Colección',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Sustainable fashion capsule collection lookbook, 3 Peruvian models wearing upcycled garments made from recycled cotton and native fabrics, Andean color palette (terracotta, deep green, cream), natural outdoor setting in Lima, editorial fashion photography, golden hour light, --ar 16:9 --style raw --v 6`},
+      {tool:'Adobe Firefly',text:`Fashion collection flat lay: 8 sustainable garments arranged on clean white surface, upcycled cotton fabric with natural dyes, native Peruvian textile patterns, pattern pieces and technical sketches, minimalist aesthetic, top-down view`},
+      {tool:'Stable Diffusion',text:`fashion design technical sketchbook spread, pencil and watercolor fashion illustration, sustainable collection, Andean patterns, croquis figures wearing contemporary sustainable garments, professional fashion design portfolio page, high detail`},
+    ]
+  },
+  'img-resultado':{
+    titulo:'Slide Resultados',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Fashion show presentation, sustainable collection runway, Lima Peru cultural center venue, warm spotlight lighting, models walking the runway in upcycled garments, audience of fashion professionals, documentary photography style, --ar 16:9`},
+      {tool:'DALL·E 3',text:`Before and after fashion design process: left side shows textile waste fabric scraps, right side shows beautiful finished sustainable garment, split composition, professional product photography, clean white background`},
+    ]
+  },
+  'img-marco':{
+    titulo:'Cap. 1 · Marco Teórico',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Sustainable fashion infographic aesthetic: circular economy diagram for textile industry, green and blue color scheme, minimal flat design icons showing recycling process from garment to fiber to new garment, professional presentation slide background, --ar 16:9`},
+    ]
+  },
+  'img-proceso':{
+    titulo:'Cap. 3 · Proceso de Confección',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Fashion design process flat lay: step by step from sketch to finished garment, fashion sketchbook with croquis, fabric swatches, pattern pieces, scissors, measuring tape, sewing machine detail, finished sustainable dress, white background, editorial photography --ar 16:9`},
+    ]
+  },
+  'img-contexto':{
+    titulo:'Cap. 2 · Contexto Laboral',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Modern fashion design studio interior, Lima Peru, open workspace with fabric rolls, mood boards, mannequins with garments, natural light from windows, young Peruvian fashion designer working at desk, contemporary professional workspace, editorial photography --ar 16:9`},
+    ]
+  },
+  'img-evaluacion':{
+    titulo:'Cap. 4 · Evaluación',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Fashion design jury presentation, professional evaluation setting, designer presenting garment collection to panel of judges, technical portfolio boards with sketches and fabric samples, academic atmosphere, Lima Peru institute --ar 16:9`},
+    ]
+  },
+  'img-conclusion':{
+    titulo:'Conclusiones',
+    prompts:[
+      {tool:'Midjourney / DALL·E 3',text:`Successful sustainable fashion brand, Peruvian designer with finished collection, proud professional moment, garments hanging in organized atelier, warm golden light, sense of accomplishment and craftsmanship, editorial style photography --ar 16:9`},
+    ]
+  }
+};
+
+// =====================================================================
+// DEMO DATA
+// =====================================================================
+const DEMO_DATA = {
+  autor:'Quispe Flores, María Fernanda',
+  dni:'47382916',
+  titulo:'Diseño de colección cápsula sostenible mediante técnicas de upcycling para el mercado juvenil limeño, 2025',
+  asesor:'Mg. Carmen Salazar Vásquez',
+  anio:'2026',
+  linea:'Moda sostenible y reciclaje textil',
+  dedicatoria:'A mis padres, Rosa y Carlos, quienes con su esfuerzo y dedicación me permitieron alcanzar esta meta profesional. Su ejemplo de perseverancia guía cada paso de mi carrera en el diseño de modas.',
+  agradecimiento:'A la institución IDC por la formación integral recibida. A mi asesora Mg. Carmen Salazar Vásquez por su orientación metodológica. A Tierra Textil S.A.C. por facilitar el espacio y los recursos para el desarrollo de la colección «Terra».',
+  empresa:'Tierra Textil S.A.C.',
+  cargo:'Diseñadora de Modas Junior',
+  periodo:'Enero 2024 – Diciembre 2025',
+  resumen:'La presente experiencia profesional se desarrolló en el sector de la moda sostenible peruana, donde se diseñó y ejecutó una colección cápsula de ocho prendas utilizando técnicas de upcycling y materiales de bajo impacto ambiental. Los objetivos planteados se cumplieron al 95%, logrando validación ante jurado especializado con 92% de aceptación del público objetivo.',
+  proyecto:'Colección cápsula «Terra» — 8 prendas upcycled con algodón nativo peruano',
+  tecnologia:'CLO3D, Patronaje zero-waste, Serigrafía con tintas ecológicas, Adobe Creative Suite',
+  marco:'Economía circular en la moda (Fletcher, 2022) y principios del slow fashion (Pookulangara & Shephard, 2023)',
+  obj_general:'Diseñar una colección cápsula de ocho prendas sostenibles para el segmento juvenil femenino (18–30 años) utilizando técnicas de upcycling y materiales certificados, en Lima, durante el año 2025.',
+  oe1:'Investigar las tendencias de moda sostenible, el comportamiento del consumidor y los proveedores de materiales ecoamigables en el mercado peruano.',
+  oe2:'Diseñar y confeccionar la colección cápsula aplicando técnicas de upcycling, patronaje zero-waste y uso de fibras naturales certificadas GOTS.',
+  oe3:'Presentar y validar la colección ante jurado especializado y potenciales consumidores del segmento objetivo mediante encuesta de percepción.',
+  logro:'Colección de 8 prendas presentada ante jurado con 92% de aceptación y seleccionada para exhibición en la Semana de la Moda Sostenible Lima 2025.',
+  mejora:'Reducción de merma textil en 35% mediante patronaje zero-waste; ciclo de diseño reducido en 2 semanas al incorporar CLO3D al flujo de trabajo.',
+  conclusion:'La aplicación de técnicas de upcycling en el contexto de la industria de la moda peruana demuestra viabilidad técnica y comercial, con alta aceptación del mercado objetivo y potencial de escalamiento para marcas independientes del sector.',
+  recomendacion:'Se recomienda que las marcas peruanas de moda incorporen al menos 20% de materiales reciclados o certificados en sus colecciones para 2027, como estrategia de posicionamiento sostenible ante consumidores conscientes y mercados de exportación exigentes.',
+  introduccion:'El presente informe contextualiza la experiencia laboral desarrollada en el sector de la moda sostenible peruana, enmarcada en la Economía Naranja y el creciente interés del mercado nacional por productos textiles de bajo impacto ambiental. La industria de la moda en el Perú atraviesa un proceso de transformación hacia prácticas de producción responsable.',
+  funciones:'Diseño de colecciones temporada: investigación de tendencias, elaboración de moodboards, bocetado de figurines, selección de materiales y paleta de color. Patronaje y confección de prototipos. Seguimiento de producción con proveedores textiles. Creación de fichas técnicas y lookbook fotográfico.',
+  proceso:'Fase 1 — Investigación: análisis de tendencias sostenibles, benchmarking de marcas y estudio de mercado juvenil limeño. Fase 2 — Diseño: moodboard, figurines, paleta cromática y selección de materiales GOTS. Fase 3 — Confección: patronaje zero-waste, corte y ensamble de 8 prendas con algodón reciclado. Fase 4 — Validación: jurado especializado y encuesta de percepción a 50 consumidores.',
+  referencias:'Fletcher, K. (2022). Fashion & Sustainability. Laurence King.\nPookulangara, S. & Shephard, A. (2023). Slow fashion movement. Journal of Retailing and Consumer Services, 30(4), 200–210.\nTextile Exchange. (2023). Preferred Fiber & Materials Report 2023. https://textileexchange.org\nMinisterio de la Producción. (2024). Industria textil y confecciones: diagnóstico sectorial. PRODUCE.\nOpenAI. (2025). ChatGPT GPT-4o [Herramienta de IA generativa]. https://chat.openai.com'
+};
+
+// =====================================================================
+// DEMO AUTOMÁTICO CON EFECTO TYPEWRITER
+// =====================================================================
+function activarDemo(){
+  mostrarToast('▶ Ejecutando demo automático...','ai');
+  const campos = Object.entries(DEMO_DATA);
+  let idx = 0;
+  function siguiente(){
+    if(idx>=campos.length){
+      mostrarToast('✓ Demo completado — haz clic en "Generar Presentación"','ok');
+      generarPresentacion();
+      return;
+    }
+    const [id, valor] = campos[idx++];
+    const el = document.getElementById(id);
+    if(!el){siguiente();return;}
+    if(el.tagName==='SELECT'){
+      [...el.options].forEach(o=>{ if(o.value===valor) o.selected=true; });
+      siguiente();
+      return;
+    }
+    el.value='';
+    el.classList.add('ai-filled');
+    setTimeout(()=>el.classList.remove('ai-filled'),1000);
+    let i=0;
+    const iv = setInterval(()=>{
+      el.value = valor.slice(0,++i);
+      if(i>=valor.length){ clearInterval(iv); setTimeout(siguiente,120); }
+    },18);
+  }
+  setTimeout(siguiente,400);
+}
+
+// =====================================================================
+// MODAL IA
+// =====================================================================
+let modalTargetId = null;
+
+function abrirModal(fieldId, tipo){
+  modalTargetId = fieldId;
+  const data = AI_DATA[tipo] || AI_DATA['titulo'];
+  document.getElementById('aiModalTitle').textContent = data.titulo;
+  document.getElementById('aiModalSub').textContent = data.sub;
+
+  const loading = document.getElementById('aiLoading');
+  const content = document.getElementById('aiContent');
+  loading.classList.add('show');
+  content.style.display='none';
+
+  setTimeout(()=>{
+    loading.classList.remove('show');
+    content.style.display='block';
+    renderModalContent(data, fieldId);
+  }, 900);
+
+  document.getElementById('aiOverlay').classList.add('show');
+}
+
+function renderModalContent(data, fieldId){
+  const tabs = document.getElementById('aiTabs');
+  const panels = document.getElementById('aiPanels');
+  tabs.innerHTML='';
+  panels.innerHTML='';
+
+  data.tabs.forEach((tab,i)=>{
+    const btn = document.createElement('button');
+    btn.className='ai-tab'+(i===0?' active':'');
+    btn.textContent=tab.label;
+    btn.onclick=()=>{
+      document.querySelectorAll('.ai-tab').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.ai-tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-'+i).classList.add('active');
+    };
+    tabs.appendChild(btn);
+
+    const panel = document.createElement('div');
+    panel.className='ai-tab-panel'+(i===0?' active':'');
+    panel.id='panel-'+i;
+
+    if(tab.type==='img'||tab.type.startsWith('img')){
+      const imgData = IMG_PROMPTS[tab.imgKey||'img-portada'];
+      if(imgData){
+        imgData.prompts.forEach(p=>{
+          panel.innerHTML+=renderImgPrompt(p);
+        });
+      }
+    } else {
+      const suggKey = tab.type==='sugg'?'sugg':tab.type==='sugg2'?'sugg2':tab.type==='sugg3'?'sugg3':'sugg';
+      const suggs = data[suggKey]||data.sugg||[];
+      panel.innerHTML=`<div class="ai-sugg-list">${suggs.map(s=>`
+        <div class="ai-sugg" onclick="usarSugerencia('${fieldId}','${s.text.replace(/'/g,"\\'")}')">
+          <div class="ai-sugg-label">${s.label}</div>
+          ${s.text}
+        </div>`).join('')}</div>
+        <p style="font-size:.75rem;color:var(--gris);margin-top:.5rem">Haz clic en cualquier sugerencia para insertar el texto en el campo.</p>`;
+    }
+    panels.appendChild(panel);
+  });
+}
+
+function renderImgPrompt(p){
+  const id='cp'+Math.random().toString(36).slice(2,8);
+  return `<div class="img-prompt-card">
+    <div class="img-prompt-label">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Prompt para imagen · ${p.tool}
+    </div>
+    <div class="img-prompt-text" id="${id}">${p.text}</div>
+    <div class="img-prompt-tools">
+      ${p.tool.split('/').map(t=>`<span class="tool-badge">${t.trim()}</span>`).join('')}
+    </div>
+    <button class="btn-copy-prompt" onclick="copiarPrompt('${id}',this)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copiar prompt
+    </button>
+  </div>`;
+}
+
+function copiarPrompt(id, btn){
+  const txt = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    btn.classList.add('copied');
+    btn.innerHTML='✓ Copiado';
+    setTimeout(()=>{btn.classList.remove('copied');btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar prompt';},2200);
+  });
+}
+
+function usarSugerencia(id, texto){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.value = texto;
+  el.classList.add('ai-filled');
+  setTimeout(()=>el.classList.remove('ai-filled'),1500);
+  cerrarModalBtn();
+  mostrarToast('✓ Sugerencia aplicada al campo','ok');
+}
+
+function cerrarModal(e){ if(e.target===document.getElementById('aiOverlay')) cerrarModalBtn(); }
+function cerrarModalBtn(){ document.getElementById('aiOverlay').classList.remove('show'); }
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  renderApaForm();
+});
+
+// =====================================================================
+// GENERADOR DE SLIDES
+// =====================================================================
+let slides=[], cur=0;
+function v(id){return (document.getElementById(id)||{}).value||'';}
+
+function generarPresentacion(){
+  const autor=v('autor'), titulo=v('titulo');
+  if(!autor||!titulo){mostrarToast('Completa Autor y Título primero');return;}
+  const d={autor,dni:v('dni'),titulo,asesor:v('asesor'),anio:v('anio')||'2026',
+    semestre:v('semestre'),empresa:v('empresa'),cargo:v('cargo'),periodo:v('periodo'),
+    dedicatoria:v('dedicatoria'),agradecimiento:v('agradecimiento'),
+    resumen:v('resumen'),introduccion:v('introduccion'),proyecto:v('proyecto'),linea:v('linea'),
+    tecnologia:v('tecnologia'),marco:v('marco'),obj_general:v('obj_general'),
+    oe1:v('oe1'),oe2:v('oe2'),oe3:v('oe3'),funciones:v('funciones'),proceso:v('proceso'),
+    logro:v('logro'),mejora:v('mejora'),conclusion:v('conclusion'),
+    recomendacion:v('recomendacion'),referencias:v('referencias')};
+
+  slides=buildSlides(d); cur=0;
+  renderSlides(d);
+  document.getElementById('slidesPreview').style.display='block';
+  document.getElementById('totalS').textContent=slides.length;
+  document.getElementById('sTot').textContent=slides.length;
+  document.getElementById('slidesPreview').scrollIntoView({behavior:'smooth',block:'start'});
+  mostrarToast(`✓ ${slides.length} diapositivas generadas`,'ok');
+}
+
+function buildSlides(d){
+  return [
+    {label:'Portada'},{label:'Dedicatoria'},{label:'Agradecimiento'},{label:'Índice'},
+    {label:'Resumen'},{label:'Introducción'},
+    {label:'Cap. 1: Marco'},{label:'Cap. 2: Contexto'},{label:'Cap. 3: Proyecto'},
+    {label:'Cap. 3: Proceso'},{label:'Cap. 4: Evaluación'},{label:'Conclusiones'},
+    {label:'Recomendaciones'},{label:'Referencias'},{label:'Cierre'}
+  ];
+}
+
+function renderSlides(d){
+  const nav=document.getElementById('slidesNav');
+  const canvas=document.getElementById('slideCanvas');
+  nav.innerHTML=''; canvas.innerHTML='';
+  const htmls=genHTMLSlides(d);
+  htmls.forEach((html,i)=>{
+    const btn=document.createElement('button');
+    btn.className='snav-btn'+(i===0?' active':'');
+    btn.textContent=slides[i].label;
+    btn.onclick=()=>goSlide(i);
+    nav.appendChild(btn);
+    const div=document.createElement('div');
+    div.className='slide-display'+(i===0?' active':'');
+    div.innerHTML=html;
+    canvas.appendChild(div);
+  });
+  updNav();
+}
+
+function ft(d,n){return `<div class="s-foot"><div style="display:flex;align-items:center;gap:.4em"><svg width="12" height="12" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#e14a94"/><polygon points="20,9 28,16 26,31 14,31 12,16" fill="white"/><rect x="17" y="6" width="6" height="5" rx="2.5" fill="white"/></svg><span class="s-foot-t">${d.autor} · TSP Diseño de Modas · IDC ${d.anio}</span></div><span class="s-foot-n">${n}</span></div>`;}
+
+function genHTMLSlides(d){
+  const inst='Instituto de Educación Superior Público "Diseño y Comunicación" (IDC)';
+  const aiMark=`<span class="slide-ai-mark">✦ Asistido por IA</span>`;
+  const s=[];
+
+  s.push(`<div class="s-portada"><div style="position:relative;z-index:2">
+    <div style="display:flex;align-items:center;gap:2%;margin-bottom:2%">
+      <svg width="clamp(24px,3.5vw,36px)" height="clamp(24px,3.5vw,36px)" viewBox="0 0 40 40" style="flex-shrink:0;opacity:.9"><circle cx="20" cy="20" r="20" fill="rgba(255,255,255,.18)"/><polygon points="20,9 28,16 26,31 14,31 12,16" fill="white"/><rect x="17" y="6" width="6" height="5" rx="2.5" fill="white"/></svg>
+      <span class="s-badge-pill">${inst}</span>
+    </div>
+    <p class="s-eyebrow">Programa de Estudios · Diseño de Modas</p>
+    <h1 class="s-big-t">${d.titulo||'[Título del TSP]'}</h1>
+    <p class="s-sub">Informe de Trabajo de Suficiencia Profesional</p>
+    <p class="s-autor">Autor: <strong>${d.autor}</strong>${d.asesor?' · Asesor(a): '+d.asesor:''}</p>
+    ${window['_img_portada']?`<img src="${window['_img_portada']}" style="position:absolute;top:0;right:0;height:100%;width:35%;object-fit:cover;opacity:.18;border-radius:0 12px 12px 0;pointer-events:none"/>`:''}
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;font-size:clamp(.42rem,.65vw,.58rem);opacity:.75;position:relative;z-index:2">
+    <span>${d.semestre||d.anio}</span>
+    <span style="text-align:center;font-weight:700;opacity:.95">Examen escrito 30% · Sustentación oral ante Jurado 70%</span>
+    <span>IDC · ${d.anio}</span>
+  </div></div>`);
+
+  // Dedicatoria
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n"></span><h2 class="s-hdr-t">Dedicatoria</h2></div>
+    <div class="s-body" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:8%">
+      <div style="max-width:500px">
+        <svg width="32" height="32" viewBox="0 0 40 40" style="opacity:.3;margin-bottom:1em"><circle cx="20" cy="20" r="20" fill="var(--rosa)"/><polygon points="20,9 28,16 26,31 14,31 12,16" fill="white"/><rect x="17" y="6" width="6" height="5" rx="2.5" fill="white"/></svg>
+        <p class="s-txt" style="font-size:clamp(.55rem,.9vw,.82rem);font-style:italic;line-height:1.8;color:var(--azul-dark)">${d.dedicatoria||'[Dedicatoria personal]'}</p>
+      </div>
+    </div>${ft(d,2)}</div>`);
+
+  // Agradecimiento
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n"></span><h2 class="s-hdr-t">Agradecimiento</h2></div>
+    <div class="s-body" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:8%">
+      <div style="max-width:550px">
+        <p class="s-txt" style="font-size:clamp(.5rem,.85vw,.78rem);line-height:1.8;color:var(--gris)">${d.agradecimiento||'[Agradecimiento institucional y personal]'}</p>
+      </div>
+    </div>${ft(d,3)}</div>`);
+
+  const secs=['Resumen Ejecutivo','Introducción','Cap. 1: Marco Teórico','Cap. 2: Contexto Laboral','Cap. 3: Actividad Profesional','Cap. 3: Proceso por Fases','Cap. 4: Evaluación y Mejora','Conclusiones','Recomendaciones','Referencias y Anexos'];
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">00</span><h2 class="s-hdr-t">Índice de Contenido</h2></div>
+    <div class="s-body" style="display:grid;grid-template-columns:1fr 1fr;gap:2% 5%;padding:2.5% 8%">
+      ${secs.map((s,i)=>`<div style="display:flex;align-items:center;gap:.7em;padding:.4em 0;border-bottom:1px dashed #eee"><span style="font-family:var(--font-m);font-size:clamp(.38rem,.56vw,.52rem);color:var(--rosa);font-weight:700;min-width:1.4em">${String(i+1).padStart(2,'0')}</span><span style="font-size:clamp(.46rem,.76vw,.68rem);color:var(--azul-dark);font-weight:600">${s}</span></div>`).join('')}
+    </div>${ft(d,4)}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">01</span><h2 class="s-hdr-t">Resumen Ejecutivo</h2></div>
+    <div class="s-body"><div class="s-2col">
+      <div><p class="s-col-t">Experiencia laboral</p>
+        ${d.empresa?`<p class="s-txt"><strong>Empresa:</strong> ${d.empresa}</p>`:''}
+        ${d.cargo?`<p class="s-txt"><strong>Cargo:</strong> ${d.cargo}</p>`:''}
+        ${d.periodo?`<p class="s-txt"><strong>Período:</strong> ${d.periodo}</p>`:''}
+        ${d.linea?`<span class="s-tag">${d.linea}</span>`:''}
+      </div>
+      <div><p class="s-col-t">Síntesis de aportes</p>
+        <p class="s-txt">${d.resumen||'[Descripción de la experiencia]'}</p>
+      </div>
+    </div></div>${ft(d,5)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">02</span><h2 class="s-hdr-t">Introducción</h2></div>
+    <div class="s-body">
+      <p class="s-title">Contexto de la experiencia profesional</p>
+      <p class="s-txt">El presente informe contextualiza la experiencia laboral del autor en el mercado de la moda, el sector textil y el ámbito creativo-cultural peruano dentro de la Economía Naranja.</p>
+      <div style="background:var(--rosa-light);border-left:3px solid var(--rosa);border-radius:6px;padding:2% 3%;margin-top:2%">
+        <p style="font-family:var(--font-m);font-size:clamp(.38rem,.56vw,.52rem);letter-spacing:.15em;text-transform:uppercase;color:var(--rosa-dark);font-weight:700;margin-bottom:.3em">Naturaleza del documento</p>
+        <p class="s-txt" style="margin:0">Este informe constituye el <strong>Examen Escrito (30%)</strong> del TSP. La <strong>Sustentación y Exposición con Demostración frente al Jurado</strong> constituye el Examen Oral (70%).</p>
+      </div>
+    </div>${ft(d,6)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">Cap.1</span><h2 class="s-hdr-t">Marco Teórico · Fundamentos Académicos</h2></div>
+    <div class="s-body"><div class="s-2col">
+      <div><p class="s-col-t">Base teórica</p>
+        <p class="s-txt">${d.marco||'Paradigmas de autores nacionales e internacionales, publicaciones últimos 5 años (APA 7.ª ed.)'}</p>
+        <p class="s-col-t" style="margin-top:1em">Línea de investigación</p>
+        <span class="s-tag">${d.linea||'[Seleccionada]'}</span>
+      </div>
+      <div><p class="s-col-t">Enfoques temáticos</p>
+        <ul class="s-list"><li>Moda sostenible y economía circular</li><li>Innovación textil y biomateriales</li><li>Diseño de moda inclusivo</li><li>Consumo responsable · Slow fashion</li><li>Fashion Tech · Diseño 3D</li></ul>
+      </div>
+    </div></div>${ft(d,7)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">Cap.2</span><h2 class="s-hdr-t">Contexto Laboral · Entorno Profesional</h2></div>
+    <div class="s-body"><div class="s-2col">
+      <div><p class="s-col-t">Datos de la organización</p>
+        <p class="s-txt"><strong>Empresa:</strong> ${d.empresa||'[Empresa]'}</p>
+        <p class="s-txt"><strong>Cargo:</strong> ${d.cargo||'[Cargo]'}</p>
+        <p class="s-txt"><strong>Período:</strong> ${d.periodo||'[Período]'}</p>
+        <p class="s-col-t" style="margin-top:1em">Funciones realizadas</p>
+        <ul class="s-list"><li>Diseño de colecciones</li><li>Patronaje y confección</li><li>Gestión de tendencias</li></ul>
+      </div>
+      <div><p class="s-col-t">Organigrama (ref.)</p>
+        <div style="background:var(--gris-claro);border-radius:6px;padding:5%;height:75%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5%">
+          <div style="background:var(--azul-dark);color:#fff;padding:.25em .9em;border-radius:5px;font-size:clamp(.36rem,.55vw,.5rem);font-weight:700">Dirección</div>
+          <div style="width:1px;height:10%;background:var(--gris-medio)"></div>
+          <div style="background:var(--rosa);color:#fff;padding:.25em .9em;border-radius:5px;font-size:clamp(.36rem,.55vw,.5rem);font-weight:700">Área de Diseño ← tú</div>
+          <div style="display:flex;gap:8%;margin-top:5%">
+            <div style="background:#fff;border:1px solid var(--gris-medio);padding:.2em .55em;border-radius:4px;font-size:clamp(.3rem,.46vw,.42rem);color:var(--gris)">Producción</div>
+            <div style="background:#fff;border:1px solid var(--gris-medio);padding:.2em .55em;border-radius:4px;font-size:clamp(.3rem,.46vw,.42rem);color:var(--gris)">Comercial</div>
+          </div>
+        </div>
+      </div>
+    </div></div>${ft(d,8)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">Cap.3</span><h2 class="s-hdr-t">Descripción del Proyecto · Ficha Técnica</h2></div>
+    <div class="s-body"><div class="s-2col">
+      <div><span class="s-tag">Proyecto</span>
+        <p class="s-title">${d.proyecto||'[Nombre del proyecto]'}</p>
+        ${d.tecnologia?`<p class="s-txt"><strong>Tecnología:</strong> ${d.tecnologia}</p>`:''}
+        <p class="s-col-t" style="margin-top:.8em">Objetivo general</p>
+        <p class="s-txt">${d.obj_general||'[Objetivo general]'}</p>
+      </div>
+      <div><p class="s-col-t">Objetivos específicos</p>
+        ${[d.oe1,d.oe2,d.oe3].filter(Boolean).map((oe,i)=>`<div style="display:flex;gap:.5em;margin-bottom:.5em"><span style="font-family:var(--font-m);font-size:clamp(.35rem,.52vw,.48rem);background:var(--azul);color:#fff;padding:.15em .45em;border-radius:4px;flex-shrink:0;height:fit-content">OE${i+1}</span><p class="s-txt" style="margin:0">${oe}</p></div>`).join('')}
+      </div>
+    </div></div>${ft(d,9)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">Cap.3</span><h2 class="s-hdr-t">Proceso por Fases</h2></div>
+    <div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:1.5%;padding:3% 8%">
+      ${[['🔍','Investigación','Análisis de mercado, tendencias, benchmarking y usuario.',d.linea.includes('sostenible')||d.linea.includes('sos')?'var(--rosa)':'var(--rosa)'],
+         ['✏️','Diseño','Bocetos, moodboard, swatches y experimentación.','var(--azul)'],
+         ['✂️','Confección','Patronaje, corte, confección y acabados textiles.','var(--dorado-dark)'],
+         ['✅','Validación','Jurado, encuesta de percepción y ajustes finales.','var(--azul-dark)']
+        ].map(([ico,tit,desc,bg])=>`
+        <div style="background:${bg};border-radius:10px;padding:4%;color:#fff;display:flex;flex-direction:column">
+          <span style="font-size:clamp(.8rem,1.4vw,1.2rem);margin-bottom:4%">${ico}</span>
+          <p style="font-family:var(--font-d);font-weight:700;font-size:clamp(.46rem,.8vw,.72rem);margin-bottom:4%;color:#fff;line-height:1.2">${tit}</p>
+          <p style="font-size:clamp(.36rem,.62vw,.56rem);opacity:.88;line-height:1.5;margin:0">${desc}</p>
+        </div>`).join('')}
+    </div>${ft(d,10)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">Cap.4</span><h2 class="s-hdr-t">Evaluación y Plan de Mejora</h2></div>
+    <div class="s-body"><div class="s-2col">
+      <div><p class="s-col-t">Logro principal obtenido</p>
+        <p class="s-txt">${d.logro||'[Resultado del proyecto]'}</p>
+        <p class="s-col-t" style="margin-top:.8em">Evidencias digitales</p>
+        <ul class="s-list"><li>Fashion sketchbooks · figurines</li><li>Fichas técnicas de prenda</li><li>Patrones técnicos y bocetos</li><li>Presentación multimedia</li></ul>
+      </div>
+      <div><p class="s-col-t">Mejora implementada</p>
+        <p class="s-txt">${d.mejora||'[Mejora al proceso]'}</p>
+        <p class="s-col-t" style="margin-top:.8em">Recomendaciones a</p>
+        <ul class="s-list"><li>Sector laboral de la moda</li><li>La empresa / marca</li><li>Profesionales del rubro</li><li>Academia · IES / universidades</li></ul>
+      </div>
+    </div></div>${ft(d,11)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">05</span><h2 class="s-hdr-t">Conclusiones</h2></div>
+    <div class="s-body">
+      <div style="background:var(--rosa-light);border-left:3px solid var(--rosa);border-radius:6px;padding:2.5% 3%;margin-bottom:2.5%">
+        <p class="s-txt" style="margin:0;font-style:italic">${d.conclusion||'[Conclusión principal]'}</p>
+      </div>
+      <p class="s-col-t">Conclusiones adicionales</p>
+      <ul class="s-list">
+        <li>La experiencia en ${d.empresa||'la empresa'} aplicó competencias del Programa en contexto real del sector.</li>
+        <li>El proyecto ${d.proyecto||'desarrollado'} demostró viabilidad técnica y comercial en el mercado peruano.</li>
+        ${d.tecnologia?`<li>La tecnología (${d.tecnologia}) optimizó el proceso productivo y la calidad final del producto.</li>`:''}
+      </ul>
+    </div>${ft(d,12)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">06</span><h2 class="s-hdr-t">Recomendaciones</h2></div>
+    <div class="s-body"><div class="s-2col">
+      <div><p class="s-col-t">Al sector y la empresa</p>
+        <p class="s-txt">${d.recomendacion||'[Recomendación al sector]'}</p>
+      </div>
+      <div><p class="s-col-t">Futuras intervenciones</p>
+        <ul class="s-list">
+          <li>Incorporar CLO3D en procesos de prototipado.</li>
+          <li>Fortalecer vínculos academia–industria textil.</li>
+          <li>Promover prácticas sostenibles como estándar.</li>
+          <li>Ampliar tallaje inclusivo en colecciones.</li>
+        </ul>
+      </div>
+    </div></div>${ft(d,13)}${aiMark}</div>`);
+
+  s.push(`<div style="height:100%;display:flex;flex-direction:column">
+    <div class="s-hdr"><span class="s-hdr-n">07</span><h2 class="s-hdr-t">Referencias APA 7.ª · Anexos</h2></div>
+    <div class="s-body"><div class="s-2col">
+      <div><p class="s-col-t">Referencias bibliográficas</p>
+        <p class="s-txt" style="font-style:italic">Fletcher, K. (2022). <em>Fashion & Sustainability</em>. Laurence King.</p>
+        <p class="s-txt" style="font-style:italic">Pookulangara, S. & Shephard, A. (2023). Slow fashion movement. <em>Journal of Retailing and Consumer Services</em>, 30(4), 200–210.</p>
+        ${d.marco?`<p class="s-txt" style="font-style:italic">${d.marco}</p>`:''}
+      </div>
+      <div><p class="s-col-t">Anexos del informe</p>
+        <ul class="s-list">
+          <li><strong>Anexo A:</strong> Diagrama de Gantt</li>
+          <li><strong>Anexo B:</strong> Presupuesto desagregado</li>
+          <li><strong>Anexo C:</strong> Fichas técnicas de prenda</li>
+          <li>Patrones técnicos · Moldes</li>
+          <li>Brief creativo · Moodboard</li>
+          <li>Fashion sketchbook · Figurines</li>
+        </ul>
+      </div>
+    </div></div>${ft(d,14)}${aiMark}</div>`);
+
+  s.push(`<div class="s-portada" style="height:100%;justify-content:center;align-items:center;text-align:center">
+    <div style="position:relative;z-index:2">
+      <p style="font-family:var(--font-m);font-size:clamp(.46rem,.68vw,.62rem);letter-spacing:.25em;text-transform:uppercase;opacity:.7;margin-bottom:.8em">Trabajo de Suficiencia Profesional</p>
+      <h2 style="font-family:var(--font-d);font-weight:800;font-size:clamp(1.3rem,2.8vw,2.5rem);color:#fff;margin-bottom:.5em;line-height:1.05">Gracias por su atención</h2>
+      <p style="font-size:clamp(.6rem,.95vw,.85rem);opacity:.85;margin-bottom:1.2em">${d.autor}</p>
+      <div style="display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:.4em 1.2em;font-size:clamp(.44rem,.66vw,.6rem);font-family:var(--font-m);letter-spacing:.14em">DISEÑO DE MODAS · IDC · ${d.anio}</div>
+      <p style="font-size:clamp(.38rem,.56vw,.52rem);opacity:.55;margin-top:.8em;font-family:var(--font-m)">✦ Presentación asistida por IA</p>
+    </div>
+  </div>`);
+
+  return s;
+}
+
+// =====================================================================
+// NAVEGACIÓN
+// =====================================================================
+function goSlide(i){
+  document.querySelectorAll('.slide-display')[cur]?.classList.remove('active');
+  document.querySelectorAll('.snav-btn')[cur]?.classList.remove('active');
+  cur=i;
+  document.querySelectorAll('.slide-display')[cur]?.classList.add('active');
+  document.querySelectorAll('.snav-btn')[cur]?.classList.add('active');
+  updNav();
+}
+function navSlide(dir){const n=cur+dir;if(n>=0&&n<slides.length)goSlide(n);}
+function updNav(){
+  document.getElementById('sAct').textContent=cur+1;
+  document.getElementById('bPrev').disabled=cur===0;
+  document.getElementById('bNext').disabled=cur===slides.length-1;
+}
+
+// =====================================================================
+// EXPORT
+// =====================================================================
+function expWord(){
+  const d={autor:v('autor'),titulo:v('titulo'),asesor:v('asesor'),anio:v('anio')||'2026',
+    semestre:v('semestre'),empresa:v('empresa'),cargo:v('cargo'),periodo:v('periodo'),
+    dedicatoria:v('dedicatoria'),agradecimiento:v('agradecimiento'),
+    resumen:v('resumen'),introduccion:v('introduccion'),proyecto:v('proyecto'),
+    linea:v('linea'),tecnologia:v('tecnologia'),marco:v('marco'),
+    obj_general:v('obj_general'),oe1:v('oe1'),oe2:v('oe2'),oe3:v('oe3'),
+    funciones:v('funciones'),proceso:v('proceso'),logro:v('logro'),mejora:v('mejora'),
+    conclusion:v('conclusion'),recomendacion:v('recomendacion'),referencias:v('referencias')};
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><style>
+body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.5;margin:2.54cm}
+h1{font-size:16pt;text-align:center;font-weight:bold;margin-top:120pt}
+h2{font-size:14pt;font-weight:bold;margin-top:24pt;margin-bottom:6pt}
+h3{font-size:12pt;font-weight:bold;margin-top:18pt}
+p{text-align:justify;margin:6pt 0}
+.center{text-align:center}
+.page-break{page-break-before:always}
+table{border-collapse:collapse;width:100%;margin:12pt 0}
+td,th{border:1px solid #000;padding:6pt 8pt;font-size:11pt}
+th{background:#e14a94;color:#fff;font-weight:bold}
+</style></head><body>
+<div class="center"><p style="font-size:11pt">INSTITUTO DE EDUCACION SUPERIOR PUBLICO<br>"DISENO Y COMUNICACION" (IDC)</p>
+<p style="font-size:11pt">Programa de Estudios: Diseno de Modas</p>
+<h1>${d.titulo||'[Titulo del TSP]'}</h1>
+<p style="margin-top:48pt;font-size:12pt">TRABAJO DE SUFICIENCIA PROFESIONAL<br>para optar el Titulo Profesional Tecnico en Diseno de Modas</p>
+<p style="margin-top:24pt">Autor: ${d.autor||'[Autor]'}</p>
+<p>Asesor(a): ${d.asesor||'[Asesor]'}</p>
+<p style="margin-top:36pt">Lima, Peru<br>${d.anio}</p></div>
+<div class="page-break"></div>
+<h2 class="center">DEDICATORIA</h2><p style="text-align:center;font-style:italic;margin-top:120pt">${d.dedicatoria||'[Dedicatoria]'}</p>
+<div class="page-break"></div>
+<h2 class="center">AGRADECIMIENTO</h2><p style="margin-top:24pt">${d.agradecimiento||'[Agradecimiento]'}</p>
+<div class="page-break"></div>
+<h2>INDICE</h2>
+<p>Dedicatoria<br>Agradecimiento<br>Resumen Ejecutivo<br>Introduccion<br>Cap. 1: Marco Teorico<br>Cap. 2: Contexto Laboral<br>Cap. 3: Descripcion del Proyecto<br>Cap. 4: Evaluacion y Mejora<br>Conclusiones<br>Recomendaciones<br>Referencias Bibliograficas<br>Anexos</p>
+<div class="page-break"></div>
+<h2>RESUMEN EJECUTIVO</h2>
+<table><tr><th>Campo</th><th>Detalle</th></tr>
+<tr><td>Empresa</td><td>${d.empresa||'-'}</td></tr>
+<tr><td>Cargo</td><td>${d.cargo||'-'}</td></tr>
+<tr><td>Periodo</td><td>${d.periodo||'-'}</td></tr>
+<tr><td>Linea de investigacion</td><td>${d.linea||'-'}</td></tr></table>
+<p>${d.resumen||'[Sintesis de experiencia profesional]'}</p>
+<div class="page-break"></div>
+<h2>INTRODUCCION</h2>
+<p>${d.introduccion||'El presente informe contextualiza la experiencia laboral del autor en el sector de la moda peruana.'}</p>
+<p>El informe escrito constituye el Examen Escrito (30%) del TSP. La Sustentacion y Exposicion con Demostracion frente al Jurado constituye el Examen Oral (70%).</p>
+<div class="page-break"></div>
+<h2>CAPITULO 1: MARCO TEORICO</h2>
+<p><strong>Base teorica:</strong> ${d.marco||'[Marco teorico]'}</p>
+<p><strong>Linea de investigacion:</strong> ${d.linea||'[Linea]'}</p>
+<div class="page-break"></div>
+<h2>CAPITULO 2: CONTEXTO LABORAL</h2>
+<p><strong>Empresa:</strong> ${d.empresa||'[Empresa]'}</p>
+<p><strong>Cargo:</strong> ${d.cargo||'[Cargo]'}</p>
+<p><strong>Periodo:</strong> ${d.periodo||'[Periodo]'}</p>
+<h3>Funciones realizadas</h3>
+<p>${d.funciones||'[Descripcion de funciones]'}</p>
+<div class="page-break"></div>
+<h2>CAPITULO 3: DESCRIPCION DEL PROYECTO</h2>
+<p><strong>Proyecto:</strong> ${d.proyecto||'[Proyecto]'}</p>
+<p><strong>Tecnologia:</strong> ${d.tecnologia||'[Tecnologia]'}</p>
+<h3>Objetivo general</h3><p>${d.obj_general||'[Objetivo general]'}</p>
+<h3>Objetivos especificos</h3>
+<p>OE1: ${d.oe1||'[OE1]'}</p><p>OE2: ${d.oe2||'[OE2]'}</p><p>OE3: ${d.oe3||'[OE3]'}</p>
+<h3>Proceso por fases</h3><p>${d.proceso||'[Descripcion del proceso]'}</p>
+<div class="page-break"></div>
+<h2>CAPITULO 4: EVALUACION Y MEJORA</h2>
+<h3>Logro principal</h3><p>${d.logro||'[Logro]'}</p>
+<h3>Mejora implementada</h3><p>${d.mejora||'[Mejora]'}</p>
+<div class="page-break"></div>
+<h2>CONCLUSIONES</h2><p>${d.conclusion||'[Conclusion principal]'}</p>
+<div class="page-break"></div>
+<h2>RECOMENDACIONES</h2><p>${d.recomendacion||'[Recomendacion]'}</p>
+<div class="page-break"></div>
+<h2>REFERENCIAS BIBLIOGRAFICAS</h2>
+<p style="line-height:2">${(d.referencias||'[Referencias APA 7.a]').replace(/\n/g,'<br>')}</p>
+<div class="page-break"></div>
+<h2>ANEXOS</h2>
+<p><strong>Anexo A:</strong> Diagrama de Gantt</p>
+<p><strong>Anexo B:</strong> Presupuesto desagregado</p>
+<p><strong>Anexo C:</strong> Fichas tecnicas de prenda</p>
+<p><strong>Anexo D:</strong> Patrones tecnicos y moldes</p>
+<p><strong>Anexo E:</strong> Brief creativo y moodboard</p>
+<p><strong>Anexo F:</strong> Fashion sketchbook y figurines</p>
+</body></html>`;
+  const blob=new Blob(['﻿'+html],{type:'application/msword;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='TSP_Diseno_Modas_'+((d.autor||'Informe').split(',')[0].replace(/\s/g,'_'))+'.doc';
+  a.click();
+  mostrarToast('Documento Word (.doc) descargado','ok');
+}
+function expHTML(){
+  descarga(document.documentElement.outerHTML,'TSP-Modas-IA.html','text/html');
+  mostrarToast('HTML descargado','ok');
+}
+function expPrompts(){
+  const txt=`PROMPTS DE IMÁGENES — TSP Diseño de Modas\n${'='.repeat(45)}\n${Object.entries(IMG_PROMPTS).map(([k,v2])=>`\n\n[ ${v2.titulo} ]\n${v2.prompts.map(p=>`\nHerramienta: ${p.tool}\nPrompt:\n${p.text}`).join('\n')}`).join('')}`;
+  descarga(txt,'TSP-Modas-Prompts-Imagenes.txt','text/plain');
+  mostrarToast('Prompts exportados','ok');
+}
+function descarga(contenido,nombre,tipo){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([contenido],{type:tipo+';charset=utf-8'}));
+  a.download=nombre; a.click();
+}
+
+// =====================================================================
+// BORRADOR
+// =====================================================================
+function guardar(){
+  const campos=['autor','dni','titulo','asesor','anio','linea','dedicatoria','agradecimiento','empresa','cargo','periodo','resumen','introduccion','proyecto','tecnologia','marco','obj_general','oe1','oe2','oe3','funciones','proceso','logro','mejora','conclusion','recomendacion','referencias'];
+  const d={};
+  campos.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value||'';});
+  localStorage.setItem('tsp_ai_data',JSON.stringify(d));
+  mostrarToast('Borrador guardado','ok');
+}
+function limpiar(){
+  if(!confirm('¿Limpiar todos los campos del formulario?'))return;
+  document.querySelectorAll('.ctrl').forEach(el=>{if(el.tagName!=='SELECT')el.value='';});
+  document.getElementById('slidesPreview').style.display='none';
+  mostrarToast('Formulario limpiado');
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  const raw=localStorage.getItem('tsp_ai_data');
+  if(!raw)return;
+  const d=JSON.parse(raw);
+  Object.entries(d).forEach(([id,val])=>{
+    const el=document.getElementById(id);
+    if(el&&el.tagName!=='SELECT')el.value=val;
+  });
+});
+
+// =====================================================================
+// TOAST
+// =====================================================================
+function mostrarToast(msg,tipo=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast-t show';
+  if(tipo==='ok')t.classList.add('ok');
+  if(tipo==='ai')t.classList.add('ai');
+  setTimeout(()=>t.classList.remove('show','ok','ai'),3200);
+}
+
+// SCROLL PROGRESS
+window.addEventListener('scroll',()=>{
+  const b=document.getElementById('scrollBar');
+  b.style.width=(window.scrollY/(document.body.scrollHeight-innerHeight)*100)+'%';
+},{passive:true});
+
+function actualizarLinea(){}
+
+// =====================================================================
+// GUÍA ACORDEÓN
+// =====================================================================
+function toggleGuide(){
+  const body=document.getElementById('guideBody');
+  const arrow=document.getElementById('guideArrow');
+  body.classList.toggle('open');
+  arrow.textContent=body.classList.contains('open')?'▲':'▼';
+}
+
+// =====================================================================
+// SUBIDA DE IMÁGENES
+// =====================================================================
+function cargarImagen(input,campo){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById('preview-'+campo);
+    if(prev){prev.src=e.target.result;prev.style.display='inline-block';}
+    window['_img_'+campo]=e.target.result;
+    mostrarToast('✓ Imagen cargada — se mostrará en la slide correspondiente','ok');
+  };
+  reader.readAsDataURL(file);
+}
+
+// =====================================================================
+// PROMPTS DRAWER
+// =====================================================================
+function togglePromptsDrawer(){
+  const drawer=document.getElementById('promptsDrawer');
+  const overlay=document.getElementById('promptsOverlay');
+  const isOpen=drawer.classList.contains('open');
+  if(!isOpen){
+    renderPromptsDrawer();
+    drawer.classList.add('open');
+    overlay.classList.add('show');
+  } else {
+    drawer.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+}
+function renderPromptsDrawer(){
+  const container=document.getElementById('prompts-drawer-content');
+  let html='';
+  Object.entries(IMG_PROMPTS).forEach(([key,data])=>{
+    html+=`<p style="font-family:var(--font-d);font-weight:700;font-size:.82rem;color:var(--azul-dark);margin:1rem 0 .3rem">${data.titulo}</p>`;
+    data.prompts.forEach((p,i)=>{
+      html+=renderImgPrompt(p);
+    });
+  });
+  container.innerHTML=html;
+}
+
+// =====================================================================
+// APA GENERATOR
+// =====================================================================
+function toggleApaPanel(){
+  const panel=document.getElementById('apaPanel');
+  const overlay=document.getElementById('apaOverlay');
+  const isOpen=panel.classList.contains('open');
+  if(!isOpen){
+    panel.classList.add('open');
+    overlay.classList.add('show');
+    renderApaForm();
+  } else {
+    panel.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+}
+
+const APA_FIELDS={
+  libro:[
+    [{id:'apa-autor',label:'Autor(es)',placeholder:'Apellido, N. N., & Apellido, N.'},{id:'apa-anio',label:'Año de publicación',placeholder:'2023'}],
+    [{id:'apa-titulo',label:'Título del libro (va en cursiva)',placeholder:'Sustainable fashion design'},{id:'apa-editorial',label:'Editorial',placeholder:'Laurence King Publishing'}],
+    [{id:'apa-doi',label:'DOI o URL (si está en línea)',placeholder:'https://doi.org/... (opcional)'}]
+  ],
+  articulo:[
+    [{id:'apa-autor',label:'Autor(es)',placeholder:'Apellido, N. N., & Apellido, N.'},{id:'apa-anio',label:'Año',placeholder:'2023'}],
+    [{id:'apa-titulo',label:'Título del artículo (sin cursiva)',placeholder:'Slow fashion movement and consumer behavior'},{id:'apa-revista',label:'Nombre de la revista (cursiva)',placeholder:'Journal of Retailing and Consumer Services'}],
+    [{id:'apa-volnum',label:'Volumen(número)',placeholder:'30(4)'},{id:'apa-pags',label:'Páginas',placeholder:'200–210'}],
+    [{id:'apa-doi',label:'DOI',placeholder:'https://doi.org/10.1016/...'}]
+  ],
+  web:[
+    [{id:'apa-autor',label:'Autor o Organización',placeholder:'Textile Exchange'},{id:'apa-anio',label:'Año',placeholder:'2024'}],
+    [{id:'apa-titulo',label:'Título de la página (cursiva)',placeholder:'Preferred Fiber & Materials Report 2024'}],
+    [{id:'apa-sitio',label:'Nombre del sitio web',placeholder:'Textile Exchange'},{id:'apa-url',label:'URL completa',placeholder:'https://textileexchange.org/...'}]
+  ],
+  tesis:[
+    [{id:'apa-autor',label:'Autor',placeholder:'Apellido, N. N.'},{id:'apa-anio',label:'Año',placeholder:'2025'}],
+    [{id:'apa-titulo',label:'Título del TSP / tesis (cursiva)',placeholder:'Diseño de colección cápsula sostenible...'}],
+    [{id:'apa-inst',label:'Institución',placeholder:'IDC · Instituto de Educación Superior Público'},{id:'apa-repo',label:'Repositorio / URL',placeholder:'https://repositorio.idc.edu.pe/...'}]
+  ],
+  ia:[
+    [{id:'apa-herramienta',label:'Herramienta de IA',placeholder:'ChatGPT'},{id:'apa-version',label:'Versión',placeholder:'GPT-4o (mayo 2025)'}],
+    [{id:'apa-empresa',label:'Empresa desarrolladora',placeholder:'OpenAI'},{id:'apa-anio',label:'Año',placeholder:'2025'}],
+    [{id:'apa-prompt',label:'Descripción del prompt (breve)',placeholder:'Generación de sugerencias para marco teórico de moda sostenible'}],
+    [{id:'apa-url',label:'URL de acceso',placeholder:'https://chat.openai.com'}]
+  ]
+};
+
+function renderApaForm(){
+  const tipo=document.getElementById('apaTipo').value;
+  const rows=APA_FIELDS[tipo]||[];
+  let html='';
+  rows.forEach(row=>{
+    html+='<div class="apa-row">';
+    row.forEach(f=>{
+      html+=`<div><label class="lbl">${f.label}</label><input type="text" id="${f.id}" class="ctrl" placeholder="${f.placeholder}"/></div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('apaFormFields').innerHTML=html;
+  document.getElementById('apaResult').style.display='none';
+}
+
+function generarAPA(){
+  const tipo=document.getElementById('apaTipo').value;
+  const g=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+  let cita='';
+  if(tipo==='libro'){
+    const doi=g('apa-doi');
+    cita=`${g('apa-autor')} (${g('apa-anio')}). <em>${g('apa-titulo')}</em>. ${g('apa-editorial')}.${doi?' '+doi:''}`;
+  } else if(tipo==='articulo'){
+    cita=`${g('apa-autor')} (${g('apa-anio')}). ${g('apa-titulo')}. <em>${g('apa-revista')}, ${g('apa-volnum')}</em>, ${g('apa-pags')}. ${g('apa-doi')}`;
+  } else if(tipo==='web'){
+    cita=`${g('apa-autor')} (${g('apa-anio')}). <em>${g('apa-titulo')}</em>. ${g('apa-sitio')}. ${g('apa-url')}`;
+  } else if(tipo==='tesis'){
+    cita=`${g('apa-autor')} (${g('apa-anio')}). <em>${g('apa-titulo')}</em> [Trabajo de Suficiencia Profesional]. ${g('apa-inst')}. ${g('apa-repo')}`;
+  } else if(tipo==='ia'){
+    cita=`${g('apa-empresa')} (${g('apa-anio')}). <em>${g('apa-herramienta')} ${g('apa-version')}</em> [Herramienta de inteligencia artificial generativa]. ${g('apa-empresa')}. ${g('apa-url')} Nota: Prompt utilizado: ${g('apa-prompt')}`;
+  }
+  const out=document.getElementById('apaOutput');
+  out.innerHTML=cita;
+  document.getElementById('apaResult').style.display='block';
+  window._lastAPA=out.innerText;
+}
+
+function insertarAPAenDoc(){
+  const cita=window._lastAPA||'';
+  if(!cita){mostrarToast('Genera una cita primero');return;}
+  const ref=document.getElementById('referencias');
+  if(ref){
+    ref.value=(ref.value?ref.value+'\n':'')+cita;
+    ref.classList.add('ai-filled');
+    setTimeout(()=>ref.classList.remove('ai-filled'),1500);
+  }
+  mostrarToast('✓ Cita insertada en el campo de Referencias','ok');
+}
+
+function copiarAPA(){
+  navigator.clipboard.writeText(window._lastAPA||'').then(()=>mostrarToast('✓ Cita APA copiada al portapapeles','ok'));
+}
+</script>
+</body>
+</html>
