@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rosa: #e14a94;
+  --azul-dark: #004f80;
+  --dorado: #f3a100;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: 'Manrope', system-ui, sans-serif; background: #fbfaf6; }
+h1,h2,h3,h4,h5,h6 { font-family: 'Bricolage Grotesque', system-ui, sans-serif; }
+
+.scroll-bar {
+  position: fixed; top: 0; left: 0; width: 0%; height: 3px;
+  background: linear-gradient(90deg, #e14a94, #004f80, #f3a100);
+  z-index: 3000; transition: width .1s linear;
+}
+
+@layer components {
+  .btn-ai {
+    @apply inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-white rounded-md cursor-pointer transition-all;
+    background: linear-gradient(135deg, #7c3aed, #e14a94);
+  }
+  .btn-ai:hover { @apply scale-105; box-shadow: 0 4px 12px rgba(124,58,237,.35); }
+
+  .ctrl {
+    @apply w-full px-3 py-2 text-sm bg-gris-claro border border-transparent rounded-lg text-azul-dark transition-all resize-y;
+    font-family: 'Manrope', sans-serif;
+  }
+  .ctrl:focus { @apply outline-none bg-white border-rosa; box-shadow: 0 0 0 4px rgba(225,74,148,.12); }
+
+  .step-label {
+    @apply flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-rosa mb-3 pb-2;
+    border-bottom: 2px dashed #d8d8d4;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.15em;
+  }
+  .step-num {
+    @apply w-6 h-6 rounded-full text-white flex items-center justify-center text-xs font-bold flex-shrink-0;
+    background: #e14a94;
+  }
+
+  .field-label {
+    @apply block text-sm font-semibold text-azul-dark mb-1;
+    font-family: 'Manrope', sans-serif;
+  }
+  .field-hint { @apply text-xs text-gris mt-1; }
+
+  .exp-card {
+    @apply bg-white rounded-xl p-4 border border-gray-200 cursor-pointer text-center transition-all;
+  }
+  .exp-card:hover { @apply border-rosa -translate-y-0.5; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+}
